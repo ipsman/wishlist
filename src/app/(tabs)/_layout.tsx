@@ -1,12 +1,12 @@
-import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
 
 export default function TabLayout() {
   return (
       <Tabs screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#059669", // emerald-600
-        tabBarInactiveTintColor: "#94a3b8", // slate-400
+        tabBarActiveTintColor: "#059669",
+        tabBarInactiveTintColor: "#94a3b8",
         tabBarStyle: {
           backgroundColor: "#ffffff",
           borderTopWidth: 1,
@@ -22,7 +22,7 @@ export default function TabLayout() {
       }}>
         <Tabs.Screen name="index" 
           options={{
-            title: "Tranzakciók",
+            title: "Wishes",
             tabBarIcon: ({ color, size }) => (
             <Ionicons name="receipt-outline" size={size} color={color} />
           ),
@@ -30,7 +30,7 @@ export default function TabLayout() {
         />
         <Tabs.Screen name="budget" 
           options={{
-            title: "Költségvetés",
+            title: "My Wishlist",
             tabBarIcon: ({ color, size }) => (
             <Ionicons name="pie-chart-outline" size={size} color={color} />
           ),
@@ -38,7 +38,7 @@ export default function TabLayout() {
         />
         <Tabs.Screen name="calendar" 
           options={{
-            title: "Naptár",
+            title: "Partner Wishlist",
             tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar-outline" size={size} color={color} />
           ),
@@ -46,7 +46,7 @@ export default function TabLayout() {
         />
         <Tabs.Screen name="settings" 
           options={{
-            title: "Beállítások",
+            title: "Settings",
             tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" size={size} color={color} />
           ),

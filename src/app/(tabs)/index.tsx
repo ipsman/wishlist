@@ -1,22 +1,21 @@
-import React, { useCallback, useState } from 'react';
+import ExpenseItem from '@/components/expenseItem';
+import { useTransactions } from '@/context/TransactionContext';
+import { useCallback, useState } from 'react';
 import {
-  Text,
-  View,
-  TextInput,
-  TouchableOpacity,
   FlatList,
   Keyboard,
   StatusBar,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import ExpenseItem from '@/components/expenseItem';
-import { useTransactions } from '@/context/TransactionContext';
 
 export default function HomeScreen() {
  const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
 
-  // 2. A helyi state HELYETT a Context-ből kéred le az adatokat és a funkciókat:
   const { transactions, totalBalance, addTransaction, deleteTransaction } = useTransactions();
 
   const handleAddTransaction = (isExpense: boolean) => {
@@ -25,7 +24,6 @@ export default function HomeScreen() {
     const parsedAmount = parseFloat(amount.replace(',', '.'));
     if (isNaN(parsedAmount) || parsedAmount <= 0) return;
 
-    // 3. Beküldjük a Context-be (ami elmenti az AsyncStorage-ba is)
     addTransaction(title.trim(), parsedAmount, isExpense);
 
     setTitle('');
@@ -41,10 +39,9 @@ export default function HomeScreen() {
     <SafeAreaView className="flex-1 bg-slate-100 px-5 pt-2">
       <StatusBar barStyle="dark-content" />
       <Text className="text-xl font-bold text-center mb-3 text-slate-800">
-        Költségkalkulátor
+        ✨My Wishlist✨
       </Text>
 
-      {/* Egyenleg kártya */}
       <View className="bg-white p-4 rounded-2xl items-center shadow-sm mb-3">
         <Text className="text-xs text-slate-500">Aktuális egyenleg</Text>
         <Text
@@ -56,44 +53,43 @@ export default function HomeScreen() {
         </Text>
       </View>
 
-      {/* Beviteli mezők kártyája */}
       <View className="bg-white p-3.5 rounded-2xl mb-5 shadow-sm">
         <TextInput
           className="border border-slate-200 p-2.5 rounded-xl mb-2.5 text-base bg-slate-50 text-slate-800"
-          placeholder="Megnevezés (pl. Kávé, Tankolás)"
+          placeholder="Wish Name"
           placeholderTextColor="#94a3b8"
           value={title}
           onChangeText={setTitle}
         />
         <TextInput
           className="border border-slate-200 p-2.5 rounded-xl mb-3 text-base bg-slate-50 text-slate-800"
-          placeholder="Összeg (Ft)"
+          placeholder="Wish Amount (Ft)"
           placeholderTextColor="#94a3b8"
           keyboardType="decimal-pad"
           value={amount}
           onChangeText={setAmount}
         />
 
+         <TextInput
+          className="border border-slate-200 p-2.5 rounded-xl mb-3 text-base bg-slate-50 text-slate-800"
+          placeholder="Wish Link"
+          placeholderTextColor="#94a3b8"
+          value={amount}
+          onChangeText={setAmount}
+        />
+
         <View className="flex-row gap-2.5">
           <TouchableOpacity
-            className="flex-1 bg-emerald-600 p-3 rounded-xl items-center"
+            className="flex-1 bg-[#ff6cc7] p-3 rounded-xl items-center w-full"
             onPress={() => handleAddTransaction(false)}
           >
-            <Text className="text-white font-bold text-base">+ Bevétel</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            className="flex-1 bg-rose-600 p-3 rounded-xl items-center"
-            onPress={() => handleAddTransaction(true)}
-          >
-            <Text className="text-white font-bold text-base">- Kiadás</Text>
+            <Text className="text-white font-bold text-base">Add Wish</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       <Text className="text-base font-bold text-slate-800">Előzmények</Text>
 
-      {/* FlatList: kiszedve a pt-6, így közvetlenül az "Előzmények" alatt kezdődik */}
       <FlatList
         data={transactions}
         keyExtractor={(item) => item.id}

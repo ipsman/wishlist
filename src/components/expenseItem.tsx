@@ -1,15 +1,15 @@
+import * as Haptics from 'expo-haptics';
 import { Text, TouchableOpacity, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
-  useSharedValue,
+  cancelAnimation,
   useAnimatedStyle,
-  withSpring,
+  useSharedValue,
   withRepeat,
   withSequence,
+  withSpring,
   withTiming,
-  cancelAnimation,
 } from "react-native-reanimated";
-import * as Haptics from 'expo-haptics';
 import { runOnJS } from "react-native-worklets";
 
 type Props = {
@@ -92,7 +92,7 @@ export default function TransactionItem({
               isExpense ? "text-rose-600" : "text-emerald-600"
             }`}
           >
-            {isExpense ? "-" : "+"}{amount.toLocaleString("hu-HU")} Ft
+            ✨{isExpense ? "-" : "+"}{amount.toLocaleString("hu-HU")} Ft
           </Text>
         </Animated.View>
       </GestureDetector>
