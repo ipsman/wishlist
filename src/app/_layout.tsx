@@ -1,15 +1,18 @@
+import { WishProvider } from "@/context/WishContext";
+import { SettingsProvider } from "@/context/settingsController";
+import { Stack } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "../global.css";
-import { Stack } from "expo-router";
-import { TransactionProvider } from "@/context/TransactionContext";
 
 
 export default function RootLayout() {
   return (
     <GestureHandlerRootView>
-      <TransactionProvider>
-        <Stack screenOptions={{ headerShown: false }}/>
-      </TransactionProvider>
+      <WishProvider>
+        <SettingsProvider>
+          <Stack screenOptions={{ headerShown: false }}/>
+        </SettingsProvider>
+      </WishProvider>
     </GestureHandlerRootView>
   );
 }

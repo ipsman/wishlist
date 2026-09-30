@@ -1,11 +1,14 @@
+import { useSettings } from "@/context/settingsController";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 
 export default function TabLayout() {
+  const { appColor, tabTitle } = useSettings();
+
   return (
       <Tabs screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#059669",
+        tabBarActiveTintColor: appColor,
         tabBarInactiveTintColor: "#94a3b8",
         tabBarStyle: {
           backgroundColor: "#ffffff",
@@ -24,7 +27,7 @@ export default function TabLayout() {
           options={{
             title: "Wishes",
             tabBarIcon: ({ color, size }) => (
-            <Ionicons name="receipt-outline" size={size} color={color} />
+            <Ionicons name="add-outline" size={size} color={color} />
           ),
           }}
         />
@@ -32,15 +35,15 @@ export default function TabLayout() {
           options={{
             title: "My Wishlist",
             tabBarIcon: ({ color, size }) => (
-            <Ionicons name="pie-chart-outline" size={size} color={color} />
+            <Ionicons name="list-outline" size={size} color={color} />
           ),
           }}
         />
         <Tabs.Screen name="calendar" 
           options={{
-            title: "Partner Wishlist",
+            title: tabTitle,
             tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar-outline" size={size} color={color} />
+            <Ionicons name="heart-outline" size={size} color={color} />
           ),
           }}
         />

@@ -1,5 +1,7 @@
-import ExpenseItem from '@/components/expenseItem';
-import { useTransactions } from '@/context/TransactionContext';
+import WishItem from '@/components/wishItem';
+import { CATEGORIES } from '@/context/categories';
+import { useSettings } from '@/context/settingsController';
+import { useWishes } from '@/context/WishContext';
 import { useCallback, useState } from 'react';
 import {
   FlatList,
@@ -14,26 +16,31 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
  const [title, setTitle] = useState('');
-  const [amount, setAmount] = useState('');
+  const [prize, setPrize] = useState('');
+  const [priority, setPriority] = useState(0);
+  const [link, setLink] = useState('');
+  const { appColor } = useSettings();
 
-  const { transactions, totalBalance, addTransaction, deleteTransaction } = useTransactions();
+  const { wishes, addWish, deleteWish, toggleComplete, setCategory, getCategory } = useWishes();
 
-  const handleAddTransaction = (isExpense: boolean) => {
-    if (!title.trim() || !amount.trim()) return;
+  const handleAddTransaction = (isCompleted: boolean) => {
+    if (!title.trim() || !prize.trim()) return;
 
-    const parsedAmount = parseFloat(amount.replace(',', '.'));
+    const parsedAmount = parseFloat(prize.replace(',', '.'));
     if (isNaN(parsedAmount) || parsedAmount <= 0) return;
 
-    addTransaction(title.trim(), parsedAmount, isExpense);
+    addWish(title.trim(),isCompleted, priority, getCategory(),  parsedAmount, link.trim());
 
     setTitle('');
-    setAmount('');
+    setPrize('');
+    setLink('');
+    setPriority(0);
     Keyboard.dismiss();
   };
 
   const handleDelete = useCallback((id: string) => {
-    deleteTransaction(id);
-  }, [deleteTransaction]);
+    deleteWish(id);
+  }, [deleteWish]);
 
   return (
     <SafeAreaView className="flex-1 bg-slate-100 px-5 pt-2">
@@ -41,17 +48,6 @@ export default function HomeScreen() {
       <Text className="text-xl font-bold text-center mb-3 text-slate-800">
         ✨My Wishlist✨
       </Text>
-
-      <View className="bg-white p-4 rounded-2xl items-center shadow-sm mb-3">
-        <Text className="text-xs text-slate-500">Aktuális egyenleg</Text>
-        <Text
-          className={`text-2xl font-bold mt-0.5 ${
-            totalBalance >= 0 ? 'text-emerald-600' : 'text-rose-600'
-          }`}
-        >
-          {totalBalance.toLocaleString('hu-HU')} Ft
-        </Text>
-      </View>
 
       <View className="bg-white p-3.5 rounded-2xl mb-5 shadow-sm">
         <TextInput
@@ -63,49 +59,59 @@ export default function HomeScreen() {
         />
         <TextInput
           className="border border-slate-200 p-2.5 rounded-xl mb-3 text-base bg-slate-50 text-slate-800"
+          placeholder="Wish Link"
+          placeholderTextColor="#94a3b8"
+          value={link}
+          onChangeText={setLink}
+        />
+        <TextInput
+          className="border border-slate-200 p-2.5 rounded-xl mb-3 text-base bg-slate-50 text-slate-800"
           placeholder="Wish Amount (Ft)"
           placeholderTextColor="#94a3b8"
           keyboardType="decimal-pad"
-          value={amount}
-          onChangeText={setAmount}
+          value={prize}
+          onChangeText={setPrize}
         />
-
-         <TextInput
-          className="border border-slate-200 p-2.5 rounded-xl mb-3 text-base bg-slate-50 text-slate-800"
-          placeholder="Wish Link"
-          placeholderTextColor="#94a3b8"
-          value={amount}
-          onChangeText={setAmount}
-        />
-
-        <View className="flex-row gap-2.5">
+        
           <TouchableOpacity
-            className="flex-1 bg-[#ff6cc7] p-3 rounded-xl items-center w-full"
+            className={`flex-1 p-3 rounded-xl items-center bg-[#f8fafc] border border-slate-200 w-2 h-2`}
+            onPress={() => handleAddTransaction(false)}
+          >
+            <Text className="text-white font-bold text-md">{CATEGORIES[0].emoji}</Text>
+          </TouchableOpacity>
+        
+          <TouchableOpacity
+            style={{backgroundColor: appColor}}
+            className={`flex-1 p-3 rounded-xl items-center w-full`}
             onPress={() => handleAddTransaction(false)}
           >
             <Text className="text-white font-bold text-base">Add Wish</Text>
           </TouchableOpacity>
-        </View>
       </View>
 
-      <Text className="text-base font-bold text-slate-800">Előzmények</Text>
+      <Text className="text-base font-bold text-slate-800 px-2">My Wishes</Text>
 
       <FlatList
-        data={transactions}
+        data={wishes}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: 20, paddingBottom: 24, paddingHorizontal: 2 }}
         ListEmptyComponent={
-          <Text className="text-center text-slate-400 mt-4">
-            Még nincs rögzített tétel.
+          <Text className="text-center text-lg text-slate-400 mt-4">
+            No wishes yet😔
           </Text>
         }
         renderItem={({ item }) => (
-          <ExpenseItem
+          <WishItem 
+            id={item.id}
             title={item.title}
-            amount={item.amount}
-            isExpense={item.isExpense}
-            onDelete={() => handleDelete(item.id)}
+            isCompleted={item.isCompleted}
+            priority={item.priority}
+            category={item.category}
+            price={item.price}
+            link={item.link}
+            deleteWish={handleDelete}
+            toggleComplete={toggleComplete}
           />
         )}
       />
