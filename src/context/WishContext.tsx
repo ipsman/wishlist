@@ -16,8 +16,10 @@ interface WishContextType {
   addWish: (title: string, isCompleted: boolean, priority: number, category: string, price: number, link: string) => void;
   deleteWish: (id: string) => void;
   toggleComplete: (id: string) => void;
-  setCategory: (id: string, catefory: string) => void;
+  setCategory: (catefory: string) => void;
   getCategory: () => string;
+  setPriority: (priority: number) => void;
+  getPriority: () => number;
 }
 
 const WishContext = createContext<WishContextType | undefined>(undefined);
@@ -27,6 +29,7 @@ const STORAGE_KEY_WISHES = "@expensepro_wishes";
 export function WishProvider({ children }: { children: React.ReactNode }) {
   const [wishes, setWishes] = useState<Wish[]>([]);
   const [category, setCategoryState] = useState<string>('');
+  const [priority, setPriorityState] = useState<number>(0);
 
   useEffect(() => {
     const loadData = async () => {
@@ -75,6 +78,14 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
     return category;
   }
 
+  const setPriority = (priority: number) => {
+    setPriorityState(priority);
+  }
+
+  const getPriority = () => {
+    return priority;
+  }
+
   return (
     <WishContext.Provider
       value={{
@@ -84,6 +95,8 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
         toggleComplete,
         setCategory,
         getCategory,
+        setPriority,
+        getPriority,
       }}
     >
       {children}

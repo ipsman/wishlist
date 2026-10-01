@@ -1,5 +1,6 @@
+import CategoryPicker from '@/components/categories';
+import Stars from '@/components/stars';
 import WishItem from '@/components/wishItem';
-import { CATEGORIES } from '@/context/categories';
 import { useSettings } from '@/context/settingsController';
 import { useWishes } from '@/context/WishContext';
 import { useCallback, useState } from 'react';
@@ -17,11 +18,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function HomeScreen() {
  const [title, setTitle] = useState('');
   const [prize, setPrize] = useState('');
-  const [priority, setPriority] = useState(0);
   const [link, setLink] = useState('');
   const { appColor } = useSettings();
 
-  const { wishes, addWish, deleteWish, toggleComplete, setCategory, getCategory } = useWishes();
+  const { wishes, addWish, deleteWish, toggleComplete, setCategory, getCategory, getPriority, setPriority } = useWishes();
 
   const handleAddTransaction = (isCompleted: boolean) => {
     if (!title.trim() || !prize.trim()) return;
@@ -29,7 +29,7 @@ export default function HomeScreen() {
     const parsedAmount = parseFloat(prize.replace(',', '.'));
     if (isNaN(parsedAmount) || parsedAmount <= 0) return;
 
-    addWish(title.trim(),isCompleted, priority, getCategory(),  parsedAmount, link.trim());
+    addWish(title.trim(),isCompleted, getPriority(), getCategory(),  parsedAmount, link.trim());
 
     setTitle('');
     setPrize('');
@@ -73,12 +73,9 @@ export default function HomeScreen() {
           onChangeText={setPrize}
         />
         
-          <TouchableOpacity
-            className={`flex-1 p-3 rounded-xl items-center bg-[#f8fafc] border border-slate-200 w-2 h-2`}
-            onPress={() => handleAddTransaction(false)}
-          >
-            <Text className="text-white font-bold text-md">{CATEGORIES[0].emoji}</Text>
-          </TouchableOpacity>
+        <Stars priority={getPriority()} setPriority={setPriority} />
+
+        <CategoryPicker setCategory={setCategory}/>
         
           <TouchableOpacity
             style={{backgroundColor: appColor}}
