@@ -16,7 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
- const [title, setTitle] = useState('');
+  const [title, setTitle] = useState('');
   const [prize, setPrize] = useState('');
   const [link, setLink] = useState('');
   const { appColor } = useSettings();
@@ -24,7 +24,7 @@ export default function HomeScreen() {
   const { wishes, addWish, deleteWish, toggleComplete, setCategory, getCategory, getPriority, setPriority } = useWishes();
 
   const handleAddTransaction = (isCompleted: boolean) => {
-    if (!title.trim() || !prize.trim()) return;
+    if (!title.trim()) return;
 
     const parsedAmount = parseFloat(prize.replace(',', '.'));
     if (isNaN(parsedAmount) || parsedAmount <= 0) return;
@@ -75,11 +75,12 @@ export default function HomeScreen() {
         
         <Stars priority={getPriority()} setPriority={setPriority} />
 
-        <CategoryPicker setCategory={setCategory}/>
+        <CategoryPicker setCategory={setCategory} category={getCategory()}/>
         
           <TouchableOpacity
             style={{backgroundColor: appColor}}
-            className={`flex-1 p-3 rounded-xl items-center w-full`}
+            className={`p-3.5 rounded-xl items-center ${title.trim() ? 'bg-[#fa8cf1]' : 'bg-slate-300'}`}
+            disabled={!title.trim()}
             onPress={() => handleAddTransaction(false)}
           >
             <Text className="text-white font-bold text-base">Add Wish</Text>
