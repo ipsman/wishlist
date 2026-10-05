@@ -1,9 +1,9 @@
-import CategoryPicker from '@/components/categories';
-import Stars from '@/components/stars';
-import WishItem from '@/components/wishItem';
-import { useSettings } from '@/context/settingsController';
-import { useWishes } from '@/context/WishContext';
-import { useCallback, useState } from 'react';
+import CategoryPicker from "@/components/categories";
+import Stars from "@/components/stars";
+import WishItem from "@/components/wishItem";
+import { useSettings } from "@/context/settingsController";
+import { useWishes } from "@/context/WishContext";
+import { useCallback, useState } from "react";
 import {
   FlatList,
   Keyboard,
@@ -12,35 +12,54 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
-  const [title, setTitle] = useState('');
-  const [prize, setPrize] = useState('');
-  const [link, setLink] = useState('');
+  const [title, setTitle] = useState("");
+  const [prize, setPrize] = useState("");
+  const [link, setLink] = useState("");
   const { appColor } = useSettings();
 
-  const { wishes, addWish, deleteWish, toggleComplete, setCategory, getCategory, getPriority, setPriority } = useWishes();
+  const {
+    wishes,
+    addWish,
+    deleteWish,
+    toggleComplete,
+    setCategory,
+    getCategory,
+    getPriority,
+    setPriority,
+  } = useWishes();
 
   const handleAddTransaction = (isCompleted: boolean) => {
     if (!title.trim()) return;
 
-    const parsedAmount = parseFloat(prize.replace(',', '.'));
+    const parsedAmount = parseFloat(prize.replace(",", "."));
     if (isNaN(parsedAmount) || parsedAmount <= 0) return;
 
-    addWish(title.trim(),isCompleted, getPriority(), getCategory(),  parsedAmount, link.trim());
+    addWish(
+      title.trim(),
+      isCompleted,
+      getPriority(),
+      getCategory(),
+      parsedAmount,
+      link.trim(),
+    );
 
-    setTitle('');
-    setPrize('');
-    setLink('');
+    setTitle("");
+    setPrize("");
+    setLink("");
     setPriority(0);
     Keyboard.dismiss();
   };
 
-  const handleDelete = useCallback((id: string) => {
-    deleteWish(id);
-  }, [deleteWish]);
+  const handleDelete = useCallback(
+    (id: string) => {
+      deleteWish(id);
+    },
+    [deleteWish],
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-slate-100 px-5 pt-2">
@@ -72,19 +91,19 @@ export default function HomeScreen() {
           value={prize}
           onChangeText={setPrize}
         />
-        
+
         <Stars priority={getPriority()} setPriority={setPriority} />
 
-        <CategoryPicker setCategory={setCategory} category={getCategory()}/>
-        
-          <TouchableOpacity
-            style={{backgroundColor: appColor}}
-            className={`p-3.5 rounded-xl items-center ${title.trim() ? 'bg-[#fa8cf1]' : 'bg-slate-300'}`}
-            disabled={!title.trim()}
-            onPress={() => handleAddTransaction(false)}
-          >
-            <Text className="text-white font-bold text-base">Add Wish</Text>
-          </TouchableOpacity>
+        <CategoryPicker setCategory={setCategory} category={getCategory()} />
+
+        <TouchableOpacity
+          style={{ backgroundColor: title.trim() ? appColor : "#cbd5e1" }}
+          className={`p-3.5 rounded-xl items-center`}
+          disabled={!title.trim()}
+          onPress={() => handleAddTransaction(false)}
+        >
+          <Text className="text-white font-bold text-base">Add Wish</Text>
+        </TouchableOpacity>
       </View>
 
       <Text className="text-base font-bold text-slate-800 px-2">My Wishes</Text>
@@ -93,14 +112,18 @@ export default function HomeScreen() {
         data={wishes}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: 20, paddingBottom: 24, paddingHorizontal: 2 }}
+        contentContainerStyle={{
+          paddingTop: 20,
+          paddingBottom: 24,
+          paddingHorizontal: 2,
+        }}
         ListEmptyComponent={
           <Text className="text-center text-lg text-slate-400 mt-4">
             No wishes yet😔
           </Text>
         }
         renderItem={({ item }) => (
-          <WishItem 
+          <WishItem
             id={item.id}
             title={item.title}
             isCompleted={item.isCompleted}

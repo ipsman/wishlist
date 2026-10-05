@@ -13,7 +13,14 @@ export interface Wish {
 
 interface WishContextType {
   wishes: Wish[];
-  addWish: (title: string, isCompleted: boolean, priority: number, category: string, price: number, link: string) => void;
+  addWish: (
+    title: string,
+    isCompleted: boolean,
+    priority: number,
+    category: string,
+    price: number,
+    link: string,
+  ) => void;
   deleteWish: (id: string) => void;
   toggleComplete: (id: string) => void;
   setCategory: (catefory: string) => void;
@@ -28,7 +35,7 @@ const STORAGE_KEY_WISHES = "@expensepro_wishes";
 
 export function WishProvider({ children }: { children: React.ReactNode }) {
   const [wishes, setWishes] = useState<Wish[]>([]);
-  const [category, setCategoryState] = useState<string>('karacsony');
+  const [category, setCategoryState] = useState<string>("karacsony");
   const [priority, setPriorityState] = useState<number>(0);
 
   useEffect(() => {
@@ -37,7 +44,6 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
         const savedWs = await AsyncStorage.getItem(STORAGE_KEY_WISHES);
 
         if (savedWs) setWishes(JSON.parse(savedWs));
-
       } catch (e) {
         console.error("Hiba az adatok betöltésekor:", e);
       }
@@ -45,7 +51,14 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
     loadData();
   }, []);
 
-  const addWish = async (title: string, isCompleted: boolean, priority: number, category: string, price: number, link: string) => {
+  const addWish = async (
+    title: string,
+    isCompleted: boolean,
+    priority: number,
+    category: string,
+    price: number,
+    link: string,
+  ) => {
     const newWs: Wish = {
       id: Date.now().toString(),
       title,
@@ -66,25 +79,23 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem(STORAGE_KEY_WISHES, JSON.stringify(updated));
   };
 
-  const toggleComplete = async (id: string) => {
-
-  } 
+  const toggleComplete = async (id: string) => {};
 
   const setCategory = async (category: string) => {
     setCategoryState(category);
-  }
+  };
 
   const getCategory = () => {
     return category;
-  }
+  };
 
   const setPriority = (priority: number) => {
     setPriorityState(priority);
-  }
+  };
 
   const getPriority = () => {
     return priority;
-  }
+  };
 
   return (
     <WishContext.Provider
@@ -106,6 +117,9 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
 
 export function useWishes() {
   const context = useContext(WishContext);
-  if (!context) throw new Error("useTransactions must be used within a TransactionProvider");
+  if (!context)
+    throw new Error(
+      "useTransactions must be used within a TransactionProvider",
+    );
   return context;
 }
