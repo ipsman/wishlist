@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getLinkPreview } from "link-preview-js";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 export interface Wish {
@@ -96,6 +97,19 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
   const getPriority = () => {
     return priority;
   };
+
+  async function handleAddLink(url: string) {
+    try {
+      const data = await getLinkPreview(url);
+      if ("images" in data && data.images.length > 0) {
+        const imageUrl = data.images[0];
+        console.log("Megtalált kép URL-je:", imageUrl);
+        // Itt elmentheted a képet a WishItem adatai közé!
+      }
+    } catch (error) {
+      console.log("Nem sikerült előnézetet tölteni:", error);
+    }
+  }
 
   return (
     <WishContext.Provider

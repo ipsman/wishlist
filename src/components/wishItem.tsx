@@ -1,5 +1,4 @@
 import * as Haptics from "expo-haptics";
-import { getLinkPreview } from "link-preview-js";
 import { Linking, Text, TouchableOpacity, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -84,19 +83,6 @@ export default function WishItem({
     transform: [{ scale: deleteScale.value }],
     opacity: deleteScale.value,
   }));
-
-  async function handleAddLink(url: string) {
-    try {
-      const data = await getLinkPreview(url);
-      if ("images" in data && data.images.length > 0) {
-        const imageUrl = data.images[0];
-        console.log("Megtalált kép URL-je:", imageUrl);
-        // Itt elmentheted a képet a WishItem adatai közé!
-      }
-    } catch (error) {
-      console.log("Nem sikerült előnézetet tölteni:", error);
-    }
-  }
 
   return (
     <View className="my-2 relative overflow-visible">
