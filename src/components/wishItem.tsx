@@ -1,5 +1,5 @@
 import * as Haptics from "expo-haptics";
-import { Linking, Text, TouchableOpacity, View } from "react-native";
+import { Image, Linking, Text, TouchableOpacity, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   cancelAnimation,
@@ -21,6 +21,7 @@ type Props = {
   category: string;
   price?: number;
   link?: string;
+  imageLink?: string;
   deleteWish: (id: string) => void;
   toggleComplete: (id: string) => void;
 };
@@ -33,6 +34,7 @@ export default function WishItem({
   category,
   price,
   link,
+  imageLink,
   deleteWish,
   toggleComplete,
 }: Props) {
@@ -118,7 +120,13 @@ export default function WishItem({
               ) : null}
             </View>
 
-            {Boolean(category) ? (
+            {Boolean(imageLink) ? (
+              <Image
+                source={{ uri: imageLink }}
+                className="w-12 h-12 rounded-lg bg-slate-100"
+                resizeMode="cover"
+              />
+            ) : Boolean(category) ? (
               <Text className="text-base">{categoryEmoji}</Text>
             ) : null}
 
