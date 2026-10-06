@@ -14,6 +14,7 @@ export interface Wish {
 
 interface WishContextType {
   wishes: Wish[];
+  partnerWishes: Wish[];
   addWish: (
     title: string,
     isCompleted: boolean,
@@ -35,6 +36,7 @@ const STORAGE_KEY_WISHES = "@expensepro_wishes";
 
 export function WishProvider({ children }: { children: React.ReactNode }) {
   const [wishes, setWishes] = useState<Wish[]>([]);
+  const [partnerWishes, setPartnerWishes] = useState<Wish[]>([]);
   const [category, setCategoryState] = useState<string>("karacsony");
   const [priority, setPriorityState] = useState<number>(0);
 

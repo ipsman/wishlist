@@ -35,7 +35,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="myWishList"
+        name="myWishListScreen"
         options={{
           title: "My Wishlist",
           tabBarIcon: ({ color, size }) => (
@@ -44,7 +44,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="calendar"
+        name="partnerWishList"
         options={{
           title: tabTitle,
           tabBarIcon: ({ color, size }) => (

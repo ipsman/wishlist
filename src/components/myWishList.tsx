@@ -1,13 +1,24 @@
 import WishItem from "@/components/wishItem";
+import { Wish } from "@/context/WishContext";
 import { FlatList, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function MyWishList() {
+
+type Props = {
+  wishes: Wish[],
+  handleDelete: (id: string) => void,
+  toggleComplete: (id: string) => void,
+}
+
+export default function MyWishList(
+  {
+    wishes,
+    handleDelete,
+    toggleComplete,
+  } : Props
+) {
   return (
-    <SafeAreaView className="flex-1 bg-slate-100">
-      <Text className="text-xl font-bold text-center mb-4 text-slate-800">
-        My WishList
-      </Text>
+    <SafeAreaView className="flex-1">
       <FlatList
         data={wishes}
         keyExtractor={(item) => item.id}

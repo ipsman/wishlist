@@ -2,6 +2,7 @@ import CategoryPicker from "@/components/categories";
 import Stars from "@/components/stars";
 import { useSettings } from "@/context/settingsController";
 import { useWishes } from "@/context/WishContext";
+import { router } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   Keyboard,
@@ -17,6 +18,7 @@ export default function HomeScreen() {
   const [title, setTitle] = useState("");
   const [prize, setPrize] = useState("");
   const [link, setLink] = useState("");
+  const [loading, setLoading] = useState(false);
   const { appColor } = useSettings();
 
   const {
@@ -30,13 +32,15 @@ export default function HomeScreen() {
     setPriority,
   } = useWishes();
 
-  const handleAddTransaction = (isCompleted: boolean) => {
+  const handleAddTransaction = async (isCompleted: boolean) => {
     if (!title.trim()) return;
 
     const parsedAmount = parseFloat(prize.replace(",", "."));
-    if (isNaN(parsedAmount) || parsedAmount <= 0) return;
+    const finalPrice = isNaN(parsedAmount) ? 0 : parsedAmount;
 
-    addWish(
+    setLoading(true);
+
+    await addWish(
       title.trim(),
       isCompleted,
       getPriority(),
@@ -45,11 +49,15 @@ export default function HomeScreen() {
       link.trim(),
     );
 
+    setLoading(false);
+
     setTitle("");
     setPrize("");
     setLink("");
     setPriority(0);
     Keyboard.dismiss();
+
+    router.push("/(tabs)/myWishListScreen");
   };
 
   const handleDelete = useCallback(
@@ -61,6 +69,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-slate-100 px-5 pt-2">
+      <View className="flex-1 px-5 pt-2">
       <StatusBar barStyle="dark-content" />
       <Text className="text-xl font-bold text-center mb-3 text-slate-800">
         ✨My Wishlist✨
@@ -103,8 +112,7 @@ export default function HomeScreen() {
           <Text className="text-white font-bold text-base">Add Wish</Text>
         </TouchableOpacity>
       </View>
-
-      <Text className="text-base font-bold text-slate-800 px-2">My Wishes</Text>
+      </View>
     </SafeAreaView>
   );
 }
