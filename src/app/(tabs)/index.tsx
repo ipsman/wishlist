@@ -35,29 +35,35 @@ export default function HomeScreen() {
   const handleAddTransaction = async (isCompleted: boolean) => {
     if (!title.trim()) return;
 
+    // Ha az ár üres vagy nem szám, garantáltan 0 legyen (ne NaN!)
     const parsedAmount = parseFloat(prize.replace(",", "."));
     const finalPrice = isNaN(parsedAmount) ? 0 : parsedAmount;
 
     setLoading(true);
 
-    await addWish(
-      title.trim(),
-      isCompleted,
-      getPriority(),
-      getCategory(),
-      parsedAmount,
-      link.trim(),
-    );
+    try {
+      await addWish(
+        title.trim(),
+        isCompleted,
+        getPriority(),
+        getCategory(),
+        finalPrice, // 👈 Kijavítva: finalPrice-ot adunk át!
+        link.trim(),
+      );
 
-    setLoading(false);
+      setTitle("");
+      setPrize("");
+      setLink("");
+      setPriority(0);
+      Keyboard.dismiss();
 
-    setTitle("");
-    setPrize("");
-    setLink("");
-    setPriority(0);
-    Keyboard.dismiss();
-
-    router.push("/(tabs)/myWishListScreen");
+      // Navigáció a lista fülre
+      router.navigate("/(tabs)/myWishListScreen");
+    } catch (error) {
+      console.error("Hiba a mentés során:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = useCallback(
@@ -68,7 +74,7 @@ export default function HomeScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-100 pt-2">
+    <SafeAreaView style={{ flex: 1 }} className="flex-1 bg-slate-100">
       <View className="flex-1 px-5 pt-2">
         <StatusBar barStyle="dark-content" />
         <Text className="text-xl font-bold text-center mb-3 text-slate-800">
@@ -106,10 +112,12 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={{ backgroundColor: title.trim() ? appColor : "#cbd5e1" }}
             className={`p-3.5 rounded-xl items-center`}
-            disabled={!title.trim()}
+            disabled={!title.trim() || loading}
             onPress={() => handleAddTransaction(false)}
           >
-            <Text className="text-white font-bold text-base">Add Wish</Text>
+            <Text className="text-white font-bold text-base">
+              {loading ? "Adding..." : "Add Wish"}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

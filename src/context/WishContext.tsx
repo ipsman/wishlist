@@ -72,20 +72,16 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // 2. SAJÁT KÍVÁNSÁGOK - Csak akkor iratkozik fel, ha a userId már létezik!
   useEffect(() => {
     if (!userId) {
-      console.log("WAITING: userId még null/undefined Androidon...");
       return;
-    } // Vár amíg az AsyncStorage visszatér Androidon
+    }
 
-    console.log("CONNECTING FIRESTORE with userId:", userId);
     const myWishesRef = collection(db, "users", userId, "wishes");
 
     const unsubscribe = onSnapshot(
       myWishesRef,
       (snapshot) => {
-        console.log("FIRESTORE GOT DOCS COUNT:", snapshot.docs.length);
         const loadedWishes: Wish[] = snapshot.docs.map((docSnap) => ({
           id: docSnap.id,
           ...(docSnap.data() as Omit<Wish, "id">),
