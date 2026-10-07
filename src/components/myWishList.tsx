@@ -3,30 +3,29 @@ import { Wish } from "@/context/WishContext";
 import { FlatList, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-
 type Props = {
-  wishes: Wish[],
-  handleDelete: (id: string) => void,
-  toggleComplete: (id: string) => void,
-}
+  wishes: Wish[];
+  handleDelete: (id: string) => void;
+  toggleComplete: (id: string) => void;
+};
 
-export default function MyWishList(
-  {
-    wishes,
-    handleDelete,
-    toggleComplete,
-  } : Props
-) {
+export default function MyWishList({
+  wishes,
+  handleDelete,
+  toggleComplete,
+}: Props) {
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1" style={{ flex: 1, width: "100%" }}>
       <FlatList
         data={wishes}
+        extraData={wishes}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
+        className="flex-1"
+        style={{ flex: 1 }}
         contentContainerStyle={{
           paddingTop: 20,
           paddingBottom: 24,
-          paddingHorizontal: 2,
         }}
         ListEmptyComponent={
           <Text className="text-center text-lg text-slate-400 mt-4">

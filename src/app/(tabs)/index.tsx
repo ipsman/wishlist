@@ -10,7 +10,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -68,50 +68,50 @@ export default function HomeScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-100 px-5 pt-2">
+    <SafeAreaView className="flex-1 bg-slate-100 pt-2">
       <View className="flex-1 px-5 pt-2">
-      <StatusBar barStyle="dark-content" />
-      <Text className="text-xl font-bold text-center mb-3 text-slate-800">
-        ✨My Wishlist✨
-      </Text>
+        <StatusBar barStyle="dark-content" />
+        <Text className="text-xl font-bold text-center mb-3 text-slate-800">
+          ✨My Wishlist✨
+        </Text>
 
-      <View className="bg-white p-3.5 rounded-2xl mb-5 shadow-sm">
-        <TextInput
-          className="border border-slate-200 p-2.5 rounded-xl mb-2.5 text-base bg-slate-50 text-slate-800"
-          placeholder="Wish Name"
-          placeholderTextColor="#94a3b8"
-          value={title}
-          onChangeText={setTitle}
-        />
-        <TextInput
-          className="border border-slate-200 p-2.5 rounded-xl mb-3 text-base bg-slate-50 text-slate-800"
-          placeholder="Wish Link"
-          placeholderTextColor="#94a3b8"
-          value={link}
-          onChangeText={setLink}
-        />
-        <TextInput
-          className="border border-slate-200 p-2.5 rounded-xl mb-3 text-base bg-slate-50 text-slate-800"
-          placeholder="Wish Amount (Ft)"
-          placeholderTextColor="#94a3b8"
-          keyboardType="decimal-pad"
-          value={prize}
-          onChangeText={setPrize}
-        />
+        <View className="bg-white p-3.5 rounded-2xl mb-5 shadow-sm">
+          <TextInput
+            className="border border-slate-200 p-2.5 rounded-xl mb-2.5 text-base bg-slate-50 text-slate-800"
+            placeholder="Wish Name"
+            placeholderTextColor="#94a3b8"
+            value={title}
+            onChangeText={setTitle}
+          />
+          <TextInput
+            className="border border-slate-200 p-2.5 rounded-xl mb-3 text-base bg-slate-50 text-slate-800"
+            placeholder="Wish Link"
+            placeholderTextColor="#94a3b8"
+            value={link}
+            onChangeText={setLink}
+          />
+          <TextInput
+            className="border border-slate-200 p-2.5 rounded-xl mb-3 text-base bg-slate-50 text-slate-800"
+            placeholder="Wish Amount (Ft)"
+            placeholderTextColor="#94a3b8"
+            keyboardType="decimal-pad"
+            value={prize}
+            onChangeText={setPrize}
+          />
 
-        <Stars priority={getPriority()} setPriority={setPriority} />
+          <Stars priority={getPriority()} setPriority={setPriority} />
 
-        <CategoryPicker setCategory={setCategory} category={getCategory()} />
+          <CategoryPicker setCategory={setCategory} category={getCategory()} />
 
-        <TouchableOpacity
-          style={{ backgroundColor: title.trim() ? appColor : "#cbd5e1" }}
-          className={`p-3.5 rounded-xl items-center`}
-          disabled={!title.trim()}
-          onPress={() => handleAddTransaction(false)}
-        >
-          <Text className="text-white font-bold text-base">Add Wish</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            style={{ backgroundColor: title.trim() ? appColor : "#cbd5e1" }}
+            className={`p-3.5 rounded-xl items-center`}
+            disabled={!title.trim()}
+            onPress={() => handleAddTransaction(false)}
+          >
+            <Text className="text-white font-bold text-base">Add Wish</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );

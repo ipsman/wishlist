@@ -1,4 +1,13 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { db } from "@/firebase";
+import { getOrCreateUserId, getPartnerId } from "@/services/partnerService";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  updateDoc,
+} from "firebase/firestore";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 export interface Wish {
@@ -25,32 +34,94 @@ interface WishContextType {
   ) => Promise<void>;
   deleteWish: (id: string) => Promise<void>;
   toggleComplete: (id: string) => Promise<void>;
+  togglePartnerComplete: (id: string) => Promise<void>;
   setCategory: (category: string) => void;
   getCategory: () => string;
   setPriority: (priority: number) => void;
   getPriority: () => number;
+  refreshPartner: () => void;
 }
 
 const WishContext = createContext<WishContextType | undefined>(undefined);
-const STORAGE_KEY_WISHES = "@expensepro_wishes";
 
 export function WishProvider({ children }: { children: React.ReactNode }) {
   const [wishes, setWishes] = useState<Wish[]>([]);
   const [partnerWishes, setPartnerWishes] = useState<Wish[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [partnerId, setPartnerIdState] = useState<string | null>(null);
   const [category, setCategoryState] = useState<string>("karacsony");
   const [priority, setPriorityState] = useState<number>(0);
 
+  // 1. User ID & Partner ID betöltése indításkor
   useEffect(() => {
-    const loadData = async () => {
+    let isMounted = true;
+    async function initUsers() {
       try {
-        const savedWs = await AsyncStorage.getItem(STORAGE_KEY_WISHES);
-        if (savedWs) setWishes(JSON.parse(savedWs));
-      } catch (e) {
-        console.error("Hiba az adatok betöltésekor:", e);
+        const currentUserId = await getOrCreateUserId();
+        if (isMounted) setUserId(currentUserId);
+
+        const currentPartnerId = await getPartnerId();
+        if (isMounted) setPartnerIdState(currentPartnerId);
+      } catch (error) {
+        console.error("Hiba a felhasználó inicializálásakor:", error);
       }
+    }
+    initUsers();
+    return () => {
+      isMounted = false;
     };
-    loadData();
   }, []);
+
+  // 2. SAJÁT KÍVÁNSÁGOK - Csak akkor iratkozik fel, ha a userId már létezik!
+  useEffect(() => {
+    if (!userId) {
+      console.log("WAITING: userId még null/undefined Androidon...");
+      return;
+    } // Vár amíg az AsyncStorage visszatér Androidon
+
+    console.log("CONNECTING FIRESTORE with userId:", userId);
+    const myWishesRef = collection(db, "users", userId, "wishes");
+
+    const unsubscribe = onSnapshot(
+      myWishesRef,
+      (snapshot) => {
+        console.log("FIRESTORE GOT DOCS COUNT:", snapshot.docs.length);
+        const loadedWishes: Wish[] = snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...(docSnap.data() as Omit<Wish, "id">),
+        }));
+        setWishes(loadedWishes);
+      },
+      (error) => {
+        console.error("Hiba a saját kívánságok feliratkozásakor:", error);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [userId]); // 👈 KÖTELEZŐ: [userId] függőség!
+
+  // 3. PARTNER KÍVÁNSÁGOK
+  useEffect(() => {
+    if (!partnerId) return;
+
+    const partnerWishesRef = collection(db, "users", partnerId, "wishes");
+
+    const unsubscribe = onSnapshot(
+      partnerWishesRef,
+      (snapshot) => {
+        const loadedWishes: Wish[] = snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...(docSnap.data() as Omit<Wish, "id">),
+        }));
+        setPartnerWishes(loadedWishes);
+      },
+      (error) => {
+        console.error("Hiba a partner kívánságok feliratkozásakor:", error);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [partnerId]); // 👈 KÖTELEZŐ: [partnerId] függőség!
 
   const addWish = async (
     title: string,
@@ -60,51 +131,64 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
     price: number,
     link: string,
   ) => {
-    const newWs: Wish = {
-      id: Date.now().toString(),
+    // Biztosítjuk, hogy legyen valid userId mentés előtt Androidon is
+    const currentUserId = userId || (await getOrCreateUserId());
+
+    await addDoc(collection(db, "users", currentUserId, "wishes"), {
       title,
       isCompleted: Boolean(isCompleted),
       priority,
       category,
       price: Number(price),
       link,
-    };
-
-    const updated = [newWs, ...wishes];
-    setWishes(updated);
-    await AsyncStorage.setItem(STORAGE_KEY_WISHES, JSON.stringify(updated));
+      createdAt: new Date().toISOString(),
+    });
   };
 
   const deleteWish = async (id: string) => {
-    const updated = wishes.filter((tx) => tx.id !== id);
-    setWishes(updated);
-    await AsyncStorage.setItem(STORAGE_KEY_WISHES, JSON.stringify(updated));
+    const currentUserId = userId || (await getOrCreateUserId());
+    await deleteDoc(doc(db, "users", currentUserId, "wishes", id));
   };
 
   const toggleComplete = async (id: string) => {
-    const updated = wishes.map((item) =>
-      item.id === id ? { ...item, isCompleted: !item.isCompleted } : item,
-    );
-    setWishes(updated);
-    await AsyncStorage.setItem(STORAGE_KEY_WISHES, JSON.stringify(updated));
+    const currentUserId = userId || (await getOrCreateUserId());
+    const targetWish = wishes.find((w) => w.id === id);
+    if (!targetWish) return;
+
+    await updateDoc(doc(db, "users", currentUserId, "wishes", id), {
+      isCompleted: !targetWish.isCompleted,
+    });
   };
 
-  const setCategory = (cat: string) => setCategoryState(cat);
-  const getCategory = () => category;
-  const setPriority = (p: number) => setPriorityState(p);
-  const getPriority = () => priority;
+  const togglePartnerComplete = async (id: string) => {
+    if (!partnerId) return;
+    const targetWish = partnerWishes.find((w) => w.id === id);
+    if (!targetWish) return;
+
+    await updateDoc(doc(db, "users", partnerId, "wishes", id), {
+      isCompleted: !targetWish.isCompleted,
+    });
+  };
+
+  const refreshPartner = async () => {
+    const pId = await getPartnerId();
+    setPartnerIdState(pId);
+  };
 
   return (
     <WishContext.Provider
       value={{
         wishes,
+        partnerWishes,
         addWish,
         deleteWish,
         toggleComplete,
-        setCategory,
-        getCategory,
-        setPriority,
-        getPriority,
+        togglePartnerComplete,
+        setCategory: setCategoryState,
+        getCategory: () => category,
+        setPriority: setPriorityState,
+        getPriority: () => priority,
+        refreshPartner,
       }}
     >
       {children}
