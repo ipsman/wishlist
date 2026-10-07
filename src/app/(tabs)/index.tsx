@@ -2,9 +2,11 @@ import CategoryPicker from "@/components/categories";
 import Stars from "@/components/stars";
 import { useSettings } from "@/context/settingsController";
 import { useWishes } from "@/context/WishContext";
+import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
 import {
+  Image,
   Keyboard,
   StatusBar,
   Text,
@@ -20,6 +22,9 @@ export default function HomeScreen() {
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
   const { appColor } = useSettings();
+  const [selectedImage, setSelectedImage] = useState<string | undefined>(
+    undefined
+  );
 
   const {
     wishes,
@@ -35,7 +40,6 @@ export default function HomeScreen() {
   const handleAddTransaction = async (isCompleted: boolean) => {
     if (!title.trim()) return;
 
-    // Ha az ár üres vagy nem szám, garantáltan 0 legyen (ne NaN!)
     const parsedAmount = parseFloat(prize.replace(",", "."));
     const finalPrice = isNaN(parsedAmount) ? 0 : parsedAmount;
 
@@ -47,17 +51,18 @@ export default function HomeScreen() {
         isCompleted,
         getPriority(),
         getCategory(),
-        finalPrice, // 👈 Kijavítva: finalPrice-ot adunk át!
+        finalPrice,
         link.trim(),
+        selectedImage,
       );
 
       setTitle("");
       setPrize("");
       setLink("");
+      setSelectedImage(undefined);
       setPriority(0);
       Keyboard.dismiss();
 
-      // Navigáció a lista fülre
       router.navigate("/(tabs)/myWishListScreen");
     } catch (error) {
       console.error("Hiba a mentés során:", error);
@@ -70,8 +75,20 @@ export default function HomeScreen() {
     (id: string) => {
       deleteWish(id);
     },
-    [deleteWish],
+    [deleteWish]
   );
+
+  const pickImageAsync = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri);
+    }
+  };
 
   return (
     <SafeAreaView style={{ flex: 1 }} className="flex-1 bg-slate-100">
@@ -109,9 +126,29 @@ export default function HomeScreen() {
 
           <CategoryPicker setCategory={setCategory} category={getCategory()} />
 
+          {/* Képválasztó gomb */}
+          <TouchableOpacity
+            style={{ backgroundColor: appColor }}
+            className="p-3.5 rounded-xl items-center mb-3"
+            onPress={pickImageAsync}
+          >
+            <Text className="text-white font-bold text-base">Add Image</Text>
+          </TouchableOpacity>
+
+          {/* Kiválasztott kép előnézete - csak akkor jelenik meg, ha van kép */}
+          {selectedImage ? (
+            <View className="items-center mb-3">
+              <Image
+                source={{ uri: selectedImage }}
+                className="w-full h-48 rounded-xl"
+                resizeMode="cover"
+              />
+            </View>
+          ) : null}
+
           <TouchableOpacity
             style={{ backgroundColor: title.trim() ? appColor : "#cbd5e1" }}
-            className={`p-3.5 rounded-xl items-center`}
+            className="p-3.5 rounded-xl items-center"
             disabled={!title.trim() || loading}
             onPress={() => handleAddTransaction(false)}
           >

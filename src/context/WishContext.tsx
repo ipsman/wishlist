@@ -1,5 +1,5 @@
 import { db } from "@/firebase";
-import { getOrCreateUserId, getPartnerId } from "@/services/partnerService";
+import { getOrCreateUserId, getPartnerId, uploadImageToCloudinary } from "@/services/partnerService";
 import {
   addDoc,
   collection,
@@ -18,7 +18,7 @@ export interface Wish {
   category: string;
   price: number;
   link: string;
-  imageLink?: string;
+  imageUri?: string
 }
 
 interface WishContextType {
@@ -31,6 +31,7 @@ interface WishContextType {
     category: string,
     price: number,
     link: string,
+    imageUri?: string
   ) => Promise<void>;
   deleteWish: (id: string) => Promise<void>;
   toggleComplete: (id: string) => Promise<void>;
@@ -52,7 +53,6 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
   const [category, setCategoryState] = useState<string>("karacsony");
   const [priority, setPriorityState] = useState<number>(0);
 
-  // 1. User ID & Partner ID betöltése indításkor
   useEffect(() => {
     let isMounted = true;
     async function initUsers() {
@@ -94,9 +94,8 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
     );
 
     return () => unsubscribe();
-  }, [userId]); // 👈 KÖTELEZŐ: [userId] függőség!
+  }, [userId]);
 
-  // 3. PARTNER KÍVÁNSÁGOK
   useEffect(() => {
     if (!partnerId) return;
 
@@ -117,7 +116,7 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
     );
 
     return () => unsubscribe();
-  }, [partnerId]); // 👈 KÖTELEZŐ: [partnerId] függőség!
+  }, [partnerId]);
 
   const addWish = async (
     title: string,
@@ -126,9 +125,16 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
     category: string,
     price: number,
     link: string,
+    imageUri?: string
   ) => {
-    // Biztosítjuk, hogy legyen valid userId mentés előtt Androidon is
+
     const currentUserId = userId || (await getOrCreateUserId());
+
+    let imageUrl = "";
+  if (imageUri) {
+    // Ha a felhasználó választott képet, feltöltjük a Firebase Storage-ba
+    imageUrl = await uploadImageToCloudinary(imageUri);
+  }
 
     await addDoc(collection(db, "users", currentUserId, "wishes"), {
       title,
@@ -137,6 +143,7 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
       category,
       price: Number(price),
       link,
+      imageLink: imageUrl,
       createdAt: new Date().toISOString(),
     });
   };

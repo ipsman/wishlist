@@ -1,5 +1,7 @@
 import { db } from "@/firebase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as FileSystem from "expo-file-system/legacy";
+import { FileSystemUploadType } from "expo-file-system/legacy";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
 const USER_ID_KEY = "@wishlist_user_id";
@@ -60,4 +62,37 @@ export const getPartnerId = async (): Promise<string | null> => {
     return userDoc.data().partnerId;
   }
   return null;
+};
+
+export const uploadImageToCloudinary = async (uri: string): Promise<string> => {
+  const cloudName = "o863ydh2";
+  const uploadPreset = "images";
+
+  try {
+    const response = await FileSystem.uploadAsync(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      uri,
+      {
+        httpMethod: "POST",
+        // 2. A hívásnál a legacy enum értéket használjuk (számmá fordul le Androidon)
+        uploadType: FileSystemUploadType.MULTIPART,
+        fieldName: "file",
+        parameters: {
+          upload_preset: uploadPreset,
+        },
+      }
+    );
+
+    const result = JSON.parse(response.body);
+
+    if (result.secure_url) {
+      return result.secure_url;
+    } else {
+      console.error("Cloudinary válasz hiba:", result);
+      throw new Error(result.error?.message || "Kép feltöltése sikertelen");
+    }
+  } catch (error) {
+    console.error("Cloudinary feltöltési hiba:", error);
+    throw error;
+  }
 };
