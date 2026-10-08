@@ -15,23 +15,39 @@ type Props = {
 };
 
 export default function CategoryPicker({ setCategory, category }: Props) {
-  const { appColor } = useSettings();
+  const { appColor, theme } = useSettings();
+  const isDarkMode = theme?.toLowerCase() === "dark";
+
   return (
     <View className="flex-row items-center gap-2 mb-3">
-      <Text className="text-sm text-slate-500 mr-1">Category:</Text>
-      {CATEGORIES.map((cat) => (
-        <TouchableOpacity
-          key={cat.key}
-          style={{
-            backgroundColor: category === cat.key ? appColor : "#f8fafc",
-            borderColor: category === cat.key ? appColor : "#e2e8f0",
-          }}
-          className={`flex-1 p-2.5 rounded-xl items-center border-2`}
-          onPress={() => setCategory(cat.key)}
-        >
-          <Text className="text-lg">{cat.emoji}</Text>
-        </TouchableOpacity>
-      ))}
+      <Text className="text-sm text-slate-500 dark:text-slate-400 mr-1">
+        Category:
+      </Text>
+      {CATEGORIES.map((cat) => {
+        const isSelected = category === cat.key;
+
+        return (
+          <TouchableOpacity
+            key={cat.key}
+            style={{
+              backgroundColor: isSelected
+                ? appColor
+                : isDarkMode
+                  ? "#0f172a"
+                  : "#f8fafc",
+              borderColor: isSelected
+                ? appColor
+                : isDarkMode
+                  ? "#334155"
+                  : "#e2e8f0",
+            }}
+            className="flex-1 p-2.5 rounded-xl items-center border-2"
+            onPress={() => setCategory(cat.key)}
+          >
+            <Text className="text-lg">{cat.emoji}</Text>
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }

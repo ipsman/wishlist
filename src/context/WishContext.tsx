@@ -1,5 +1,9 @@
 import { db } from "@/firebase";
-import { getOrCreateUserId, getPartnerId, uploadImageToCloudinary } from "@/services/partnerService";
+import {
+  getOrCreateUserId,
+  getPartnerId,
+  uploadImageToCloudinary,
+} from "@/services/partnerService";
 import {
   addDoc,
   collection,
@@ -18,7 +22,7 @@ export interface Wish {
   category: string;
   price: number;
   link: string;
-  imageUri?: string
+  imageLink?: string;
 }
 
 interface WishContextType {
@@ -31,7 +35,7 @@ interface WishContextType {
     category: string,
     price: number,
     link: string,
-    imageUri?: string
+    imageLink?: string,
   ) => Promise<void>;
   deleteWish: (id: string) => Promise<void>;
   toggleComplete: (id: string) => Promise<void>;
@@ -82,10 +86,19 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onSnapshot(
       myWishesRef,
       (snapshot) => {
-        const loadedWishes: Wish[] = snapshot.docs.map((docSnap) => ({
-          id: docSnap.id,
-          ...(docSnap.data() as Omit<Wish, "id">),
-        }));
+        const loadedWishes: Wish[] = snapshot.docs.map((docSnap) => {
+          const data = docSnap.data();
+          return {
+            id: docSnap.id,
+            title: data.title || "",
+            isCompleted: Boolean(data.isCompleted),
+            priority: Number(data.priority) || 0,
+            category: data.category || "",
+            price: Number(data.price) || 0,
+            link: data.link || "",
+            imageLink: data.imageLink || data.imageUri || "", // 👈 Kifejezetten kiolvassuk a képhivatkozást!
+          };
+        });
         setWishes(loadedWishes);
       },
       (error) => {
@@ -104,10 +117,19 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onSnapshot(
       partnerWishesRef,
       (snapshot) => {
-        const loadedWishes: Wish[] = snapshot.docs.map((docSnap) => ({
-          id: docSnap.id,
-          ...(docSnap.data() as Omit<Wish, "id">),
-        }));
+        const loadedWishes: Wish[] = snapshot.docs.map((docSnap) => {
+          const data = docSnap.data();
+          return {
+            id: docSnap.id,
+            title: data.title || "",
+            isCompleted: Boolean(data.isCompleted),
+            priority: Number(data.priority) || 0,
+            category: data.category || "",
+            price: Number(data.price) || 0,
+            link: data.link || "",
+            imageLink: data.imageLink || data.imageUri || "", // 👈 Kifejezetten kiolvassuk a képhivatkozást!
+          };
+        });
         setPartnerWishes(loadedWishes);
       },
       (error) => {
@@ -125,16 +147,15 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
     category: string,
     price: number,
     link: string,
-    imageUri?: string
+    imageUri?: string,
   ) => {
-
     const currentUserId = userId || (await getOrCreateUserId());
 
     let imageUrl = "";
-  if (imageUri) {
-    // Ha a felhasználó választott képet, feltöltjük a Firebase Storage-ba
-    imageUrl = await uploadImageToCloudinary(imageUri);
-  }
+    if (imageUri) {
+      // Ha a felhasználó választott képet, feltöltjük a Firebase Storage-ba
+      imageUrl = await uploadImageToCloudinary(imageUri);
+    }
 
     await addDoc(collection(db, "users", currentUserId, "wishes"), {
       title,

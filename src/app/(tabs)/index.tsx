@@ -4,7 +4,7 @@ import { useSettings } from "@/context/settingsController";
 import { useWishes } from "@/context/WishContext";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import {
   Image,
   Keyboard,
@@ -21,9 +21,9 @@ export default function HomeScreen() {
   const [prize, setPrize] = useState("");
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
-  const { appColor } = useSettings();
+  const { appColor, theme } = useSettings();
   const [selectedImage, setSelectedImage] = useState<string | undefined>(
-    undefined
+    undefined,
   );
 
   const {
@@ -65,18 +65,11 @@ export default function HomeScreen() {
 
       router.navigate("/(tabs)/myWishListScreen");
     } catch (error) {
-      console.error("Hiba a mentés során:", error);
+      console.error("Error saving wish:", error);
     } finally {
       setLoading(false);
     }
   };
-
-  const handleDelete = useCallback(
-    (id: string) => {
-      deleteWish(id);
-    },
-    [deleteWish]
-  );
 
   const pickImageAsync = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -90,31 +83,36 @@ export default function HomeScreen() {
     }
   };
 
+  const isDarkMode = theme?.toLowerCase() === "dark";
+
   return (
-    <SafeAreaView style={{ flex: 1 }} className="flex-1 bg-slate-100">
+    <SafeAreaView
+      style={{ flex: 1 }}
+      className="flex-1 bg-slate-100 dark:bg-slate-900"
+    >
       <View className="flex-1 px-5 pt-2">
-        <StatusBar barStyle="dark-content" />
-        <Text className="text-xl font-bold text-center mb-3 text-slate-800">
+        <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
+        <Text className="text-xl font-bold text-center mb-3 text-slate-800 dark:text-white">
           ✨My Wishlist✨
         </Text>
 
-        <View className="bg-white p-3.5 rounded-2xl mb-5 shadow-sm">
+        <View className="bg-white dark:bg-slate-800 p-3.5 rounded-2xl mb-5 shadow-sm border border-transparent dark:border-slate-700">
           <TextInput
-            className="border border-slate-200 p-2.5 rounded-xl mb-2.5 text-base bg-slate-50 text-slate-800"
+            className="border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl mb-2.5 text-base bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white"
             placeholder="Wish Name"
             placeholderTextColor="#94a3b8"
             value={title}
             onChangeText={setTitle}
           />
           <TextInput
-            className="border border-slate-200 p-2.5 rounded-xl mb-3 text-base bg-slate-50 text-slate-800"
+            className="border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl mb-3 text-base bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white"
             placeholder="Wish Link"
             placeholderTextColor="#94a3b8"
             value={link}
             onChangeText={setLink}
           />
           <TextInput
-            className="border border-slate-200 p-2.5 rounded-xl mb-3 text-base bg-slate-50 text-slate-800"
+            className="border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl mb-3 text-base bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white"
             placeholder="Wish Amount (Ft)"
             placeholderTextColor="#94a3b8"
             keyboardType="decimal-pad"
@@ -126,7 +124,7 @@ export default function HomeScreen() {
 
           <CategoryPicker setCategory={setCategory} category={getCategory()} />
 
-          {/* Képválasztó gomb */}
+          {/* Add Image Button */}
           <TouchableOpacity
             style={{ backgroundColor: appColor }}
             className="p-3.5 rounded-xl items-center mb-3"
@@ -135,7 +133,7 @@ export default function HomeScreen() {
             <Text className="text-white font-bold text-base">Add Image</Text>
           </TouchableOpacity>
 
-          {/* Kiválasztott kép előnézete - csak akkor jelenik meg, ha van kép */}
+          {/* Image Preview */}
           {selectedImage ? (
             <View className="items-center mb-3">
               <Image
@@ -147,7 +145,13 @@ export default function HomeScreen() {
           ) : null}
 
           <TouchableOpacity
-            style={{ backgroundColor: title.trim() ? appColor : "#cbd5e1" }}
+            style={{
+              backgroundColor: title.trim()
+                ? appColor
+                : isDarkMode
+                  ? "#334155"
+                  : "#cbd5e1",
+            }}
             className="p-3.5 rounded-xl items-center"
             disabled={!title.trim() || loading}
             onPress={() => handleAddTransaction(false)}

@@ -3,7 +3,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 
 export default function TabLayout() {
-  const { appColor, tabTitle } = useSettings();
+  const { appColor, tabTitle, theme } = useSettings();
+  const isDarkMode = theme?.toLowerCase() === "dark";
 
   return (
     <Tabs
@@ -12,9 +13,9 @@ export default function TabLayout() {
         tabBarActiveTintColor: appColor,
         tabBarInactiveTintColor: "#94a3b8",
         tabBarStyle: {
-          backgroundColor: "#ffffff",
+          backgroundColor: isDarkMode ? "#0f172a" : "#ffffff",
           borderTopWidth: 1,
-          borderTopColor: "#f1f5f9",
+          borderTopColor: isDarkMode ? "#1e293b" : "#f1f5f9",
           height: 60,
           paddingBottom: 8,
           paddingTop: 6,

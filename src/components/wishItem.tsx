@@ -1,5 +1,14 @@
+import { useSettings } from "@/context/settingsController";
 import * as Haptics from "expo-haptics";
-import { Linking, Text, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import {
+  Image,
+  Linking,
+  Modal,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   cancelAnimation,
@@ -21,6 +30,7 @@ type Props = {
   category: string;
   price?: number;
   link?: string;
+  imageLink?: string;
   deleteWish: (id: string) => void;
   toggleComplete: (id: string) => void;
 };
@@ -33,17 +43,25 @@ export default function WishItem({
   category,
   price,
   link,
+  imageLink,
   deleteWish,
   toggleComplete,
 }: Props) {
+  const { theme } = useSettings();
+  const isDarkMode = theme?.toLowerCase() === "dark";
+
   const isExpanded = useSharedValue(false);
   const scale = useSharedValue(1);
   const rotation = useSharedValue(0);
   const deleteScale = useSharedValue(0);
-  const color = useSharedValue("#ffffff");
+  const color = useSharedValue(isDarkMode ? "#1e293b" : "#ffffff");
+  const [isImageOpened, setImageOpened] = useState(false);
 
   const categoryEmoji =
     CATEGORIES.find((cat) => cat.key === category)?.emoji || category;
+
+  const hasImage = typeof imageLink === "string" && imageLink.trim().length > 0;
+  const secureImageUri = imageLink?.replace("http://", "https://");
 
   const longPressGesture = Gesture.LongPress()
     .minDuration(150)
@@ -67,7 +85,9 @@ export default function WishItem({
       } else {
         scale.value = withSpring(1);
         deleteScale.value = withTiming(0, { duration: 150 });
-        color.value = withTiming("#ffffff", { duration: 150 });
+        color.value = withTiming(isDarkMode ? "#1e293b" : "#ffffff", {
+          duration: 150,
+        });
 
         cancelAnimation(rotation);
         rotation.value = withSpring(0);
@@ -97,7 +117,7 @@ export default function WishItem({
               justifyContent: "space-between",
               alignItems: "center",
               borderWidth: 1,
-              borderColor: "#f1f5f9",
+              borderColor: isDarkMode ? "#334155" : "#f1f5f9",
             },
           ]}
         >
@@ -110,7 +130,7 @@ export default function WishItem({
               className={`w-6 h-6 rounded-full border-2 items-center justify-center ${
                 isCompleted
                   ? "bg-emerald-400 border-emerald-400"
-                  : "border-slate-300"
+                  : "border-slate-300 dark:border-slate-600"
               }`}
             >
               {isCompleted ? (
@@ -118,24 +138,16 @@ export default function WishItem({
               ) : null}
             </View>
 
-            {
-              /* Boolean(imageLink) ? (
-              <Image
-                source={{ uri: imageLink }}
-                className="w-12 h-12 rounded-lg bg-slate-100"
-                resizeMode="cover"
-              />
-            ) :  */ Boolean(category) ? (
-                <Text className="text-base">{categoryEmoji}</Text>
-              ) : null
-            }
+            {category ? (
+              <Text className="text-base">{categoryEmoji}</Text>
+            ) : null}
 
-            <View className="flex-1">
+            <View className="flex-1 ml-2">
               <Text
                 className={`text-base ${
                   isCompleted
-                    ? "line-through text-slate-400"
-                    : "text-slate-700 font-medium"
+                    ? "line-through text-slate-400 dark:text-slate-500"
+                    : "text-slate-700 dark:text-slate-100 font-medium"
                 }`}
                 numberOfLines={1}
               >
@@ -145,7 +157,7 @@ export default function WishItem({
               {Boolean(price) || priority > 1 ? (
                 <View className="flex-row items-center gap-2 mt-0.5">
                   {typeof price === "number" && price > 0 ? (
-                    <Text className="text-xs text-slate-400 font-medium">
+                    <Text className="text-xs text-slate-400 dark:text-slate-400 font-medium">
                       {price} Ft
                     </Text>
                   ) : null}
@@ -157,6 +169,22 @@ export default function WishItem({
             </View>
           </TouchableOpacity>
 
+          {hasImage ? (
+            <TouchableOpacity
+              onPress={() => setImageOpened(true)}
+              activeOpacity={0.8}
+            >
+              <Image
+                source={{ uri: secureImageUri }}
+                style={{ width: 48, height: 48, borderRadius: 8 }}
+                resizeMode="cover"
+                onError={(e) =>
+                  console.log("Image load error:", e.nativeEvent.error)
+                }
+              />
+            </TouchableOpacity>
+          ) : null}
+
           {Boolean(link) ? (
             <TouchableOpacity
               onPress={() => link && Linking.openURL(link)}
@@ -167,6 +195,40 @@ export default function WishItem({
           ) : null}
         </Animated.View>
       </GestureDetector>
+
+      {/* Full-screen Modal Image Viewer */}
+      {isImageOpened ? (
+        <Modal
+          transparent={true}
+          animationType="fade"
+          visible={true}
+          onRequestClose={() => setImageOpened(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => setImageOpened(false)}
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <TouchableOpacity activeOpacity={1}>
+              <Image
+                source={{ uri: secureImageUri }}
+                style={{ width: 340, height: 380, borderRadius: 16 }}
+                resizeMode="cover"
+                onError={(e) =>
+                  console.log("Image load error:", e.nativeEvent.error)
+                }
+              />
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Modal>
+      ) : null}
+
+      {/* Delete Button */}
       <Animated.View
         style={[
           animatedDeleteButtonStyle,

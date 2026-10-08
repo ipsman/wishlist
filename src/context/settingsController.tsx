@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
+import { colorScheme } from "nativewind";
+import React, {
   createContext,
   ReactNode,
   useContext,
@@ -9,14 +10,15 @@ import {
 
 export interface Settings {
   girlMode: boolean;
-  theme: string;
+  theme: "light" | "dark";
 }
 
 interface SettingsContextType extends Settings {
   appColor: string;
   tabTitle: string;
   setGirlMode: (value: boolean) => void;
-  setTheme: (theme: string) => void;
+  setTheme: (theme: "light" | "dark") => void;
+  toggleTheme: () => void; // 👈 Hozzáadva a kényelmes váltáshoz
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(
@@ -29,7 +31,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [girlMode, setGirlModeState] = useState<boolean>(false);
-  const [theme, setThemeState] = useState<string>("Light");
+  const [theme, setThemeState] = useState<"light" | "dark">("light");
 
   const appColor = girlMode ? "#ff6cc7" : "#7dd3fc";
   const tabTitle = girlMode ? "His Wishlist" : "Her Wishlist";
@@ -41,8 +43,11 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
 
         if (savedSt) {
           const parsed: Settings = JSON.parse(savedSt);
-          setGirlMode(parsed.girlMode ?? false);
-          setTheme(parsed.theme ?? "Light");
+          const loadedTheme = parsed.theme || "light";
+
+          setGirlModeState(parsed.girlMode ?? false);
+          setThemeState(loadedTheme);
+          colorScheme.set(loadedTheme); // 👈 A beolvasott témát állítjuk be!
         }
       } catch (e) {
         console.error("Hiba az adatok betöltésekor:", e);
@@ -56,12 +61,21 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
     saveSettings(value, theme);
   };
 
-  const setTheme = async (value: string) => {
+  const setTheme = async (value: "light" | "dark") => {
     setThemeState(value);
+    colorScheme.set(value); // 👈 Frissíti a NativeWind témát!
     saveSettings(girlMode, value);
   };
 
-  const saveSettings = async (newGirlMode: boolean, newTheme: string) => {
+  const toggleTheme = () => {
+    const nextTheme = theme === "light" ? "dark" : "light";
+    setTheme(nextTheme);
+  };
+
+  const saveSettings = async (
+    newGirlMode: boolean,
+    newTheme: "light" | "dark",
+  ) => {
     try {
       const settingsToSave: Settings = {
         girlMode: newGirlMode,
@@ -72,13 +86,21 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
         JSON.stringify(settingsToSave),
       );
     } catch (e) {
-      console.error("Hiba az adatok betöltésekor:", e);
+      console.error("Hiba az adatok mentésekor:", e);
     }
   };
 
   return (
     <SettingsContext.Provider
-      value={{ appColor, tabTitle, girlMode, theme, setGirlMode, setTheme }}
+      value={{
+        appColor,
+        tabTitle,
+        girlMode,
+        theme,
+        setGirlMode,
+        setTheme,
+        toggleTheme,
+      }}
     >
       {children}
     </SettingsContext.Provider>
@@ -88,7 +110,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
 export const useSettings = () => {
   const context = useContext(SettingsContext);
   if (!context) {
-    throw new Error("Nem jo;");
+    throw new Error("useSettings must be used within a SettingsProvider");
   }
   return context;
 };
