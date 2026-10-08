@@ -9,7 +9,7 @@ export default function RootLayout() {
     <GestureHandlerRootView>
       <WishProvider>
         <SettingsProvider>
-          <Stack screenOptions={{ headerShown: false }}/>
+          <Stack screenOptions={{ headerShown: false }} />
         </SettingsProvider>
       </WishProvider>
     </GestureHandlerRootView>
