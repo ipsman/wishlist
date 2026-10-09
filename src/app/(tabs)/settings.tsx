@@ -85,7 +85,6 @@ export default function SettingsScreen() {
           Settings
         </Text>
 
-        {/* CARD 1: GENERAL SETTINGS */}
         <View className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm mb-4 border border-transparent dark:border-slate-700">
           <View className="flex-row justify-between items-center py-2 border-b border-slate-100 dark:border-slate-700">
             <Text className="text-base text-slate-700 dark:text-slate-200 font-medium">
@@ -111,7 +110,6 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* CARD 2: PARTNER STATUS */}
         <View className="bg-white dark:bg-slate-800 p-4 rounded-2xl mb-4 shadow-sm border border-transparent dark:border-slate-700">
           <Text className="text-base font-bold text-slate-700 dark:text-slate-200 mb-2">
             Partner connection status
@@ -129,7 +127,6 @@ export default function SettingsScreen() {
           )}
         </View>
 
-        {/* CARD 3: GENERATE CODE */}
         <View className="bg-white dark:bg-slate-800 p-4 rounded-2xl mb-4 shadow-sm border border-transparent dark:border-slate-700">
           <Text className="text-base font-bold text-slate-700 dark:text-slate-200 mb-1">
             Your pairing code
@@ -164,8 +161,7 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* CARD 4: ENTER PARTNER CODE */}
-        <View className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-transparent dark:border-slate-700">
+        <View className="bg-white dark:bg-slate-800 p-4 mb-4 rounded-2xl shadow-sm border border-transparent dark:border-slate-700">
           <Text className="text-base font-bold text-slate-700 dark:text-slate-200 mb-1">
             Partner's code
           </Text>
@@ -202,6 +198,15 @@ export default function SettingsScreen() {
               <Text className="text-white font-bold text-sm">Connect 🔗</Text>
             )}
           </TouchableOpacity>
+        </View>
+
+        <View className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-transparent dark:border-slate-700">
+          <Text className="text-base font-bold text-slate-700 dark:text-slate-200 mb-1">
+            Credits
+          </Text>
+          <Text className="text-sm text-slate-400 dark:text-slate-400 mb-3">
+            Made by Máté Auer ©️ MateDevs
+          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>

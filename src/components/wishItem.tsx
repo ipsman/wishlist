@@ -30,6 +30,7 @@ type Props = {
   category: string;
   price?: number;
   link?: string;
+  comment?: string;
   imageLink?: string;
   deleteWish: (id: string) => void;
   toggleComplete: (id: string) => void;
@@ -43,6 +44,7 @@ export default function WishItem({
   category,
   price,
   link,
+  comment,
   imageLink,
   deleteWish,
   toggleComplete,
@@ -154,7 +156,20 @@ export default function WishItem({
                 {title}
               </Text>
 
-              {Boolean(price) || priority > 1 ? (
+              {Boolean(comment) ? (
+                <Text
+                  className={`text-base ${
+                    isCompleted
+                      ? "line-through text-slate-400 dark:text-slate-500"
+                      : "text-slate-700 dark:text-slate-100"
+                  }`}
+                  numberOfLines={1}
+                >
+                  {comment}
+                </Text>
+              ) : null}
+
+              {Boolean(price) ? (
                 <View className="flex-row items-center gap-2 mt-0.5">
                   {typeof price === "number" && price > 0 ? (
                     <Text className="text-xs text-slate-400 dark:text-slate-400 font-medium">

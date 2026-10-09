@@ -22,6 +22,7 @@ export interface Wish {
   category: string;
   price: number;
   link: string;
+  comment: string;
   imageLink?: string;
 }
 
@@ -35,6 +36,7 @@ interface WishContextType {
     category: string,
     price: number,
     link: string,
+    comment: string,
     imageLink?: string,
   ) => Promise<void>;
   deleteWish: (id: string) => Promise<void>;
@@ -96,7 +98,8 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
             category: data.category || "",
             price: Number(data.price) || 0,
             link: data.link || "",
-            imageLink: data.imageLink || data.imageUri || "", // 👈 Kifejezetten kiolvassuk a képhivatkozást!
+            comment: data.comment,
+            imageLink: data.imageLink || data.imageUri || "",
           };
         });
         setWishes(loadedWishes);
@@ -127,7 +130,8 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
             category: data.category || "",
             price: Number(data.price) || 0,
             link: data.link || "",
-            imageLink: data.imageLink || data.imageUri || "", // 👈 Kifejezetten kiolvassuk a képhivatkozást!
+            comment: data.comment,
+            imageLink: data.imageLink || data.imageUri || "",
           };
         });
         setPartnerWishes(loadedWishes);
@@ -147,13 +151,13 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
     category: string,
     price: number,
     link: string,
+    comment: string,
     imageUri?: string,
   ) => {
     const currentUserId = userId || (await getOrCreateUserId());
 
     let imageUrl = "";
     if (imageUri) {
-      // Ha a felhasználó választott képet, feltöltjük a Firebase Storage-ba
       imageUrl = await uploadImageToCloudinary(imageUri);
     }
 
@@ -164,6 +168,7 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
       category,
       price: Number(price),
       link,
+      comment,
       imageLink: imageUrl,
       createdAt: new Date().toISOString(),
     });

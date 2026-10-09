@@ -41,6 +41,7 @@ export default function MyWishList({
             category={item.category}
             price={item.price}
             link={item.link}
+            comment={item.comment}
             imageLink={item.imageLink}
             deleteWish={handleDelete}
             toggleComplete={toggleComplete}
