@@ -5,14 +5,22 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 type Props = {
   wishes: Wish[];
+  isPartnersList: boolean;
   handleDelete: (id: string) => void;
   toggleComplete: (id: string) => void;
+  onAddPartnerComment?: (wishId: string, text: string) => void;
+  onDeletePartnerComment?: (wishId: string, commentId: string) => void;
+  onEditPartnerComment?: (wishId: string, commentId: string, newText: string) => void;
 };
 
 export default function MyWishList({
   wishes,
+  isPartnersList,
   handleDelete,
   toggleComplete,
+  onAddPartnerComment,
+  onDeletePartnerComment,
+  onEditPartnerComment,
 }: Props) {
   return (
     <SafeAreaView className="flex-1" style={{ flex: 1, width: "100%" }}>
@@ -43,8 +51,13 @@ export default function MyWishList({
             link={item.link}
             comment={item.comment}
             imageLink={item.imageLink}
+            partnerComments={item.partnerComments}
             deleteWish={handleDelete}
             toggleComplete={toggleComplete}
+            isPartnersWish={isPartnersList}
+            onAddPartnerComment={onAddPartnerComment}
+            onDeletePartnerComment={onDeletePartnerComment}
+            onEditPartnerComment={onEditPartnerComment}
           />
         )}
       />

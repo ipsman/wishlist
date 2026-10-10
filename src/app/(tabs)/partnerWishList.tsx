@@ -6,7 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PartnerWishList() {
   const { tabTitle } = useSettings();
-  const { partnerWishes, deleteWish, toggleComplete } = useWishes();
+  const { partnerWishes, deleteWish, toggleComplete, addPartnerComments, deletePartnerComments, editPartnerComments } = useWishes();
 
   return (
     <SafeAreaView className="flex-1 bg-slate-100 dark:bg-slate-900">
@@ -16,8 +16,12 @@ export default function PartnerWishList() {
         </Text>
         <MyWishList
           wishes={partnerWishes}
+          isPartnersList={true}
           handleDelete={deleteWish}
           toggleComplete={toggleComplete}
+          onAddPartnerComment={addPartnerComments}
+          onDeletePartnerComment={deletePartnerComments}
+          onEditPartnerComment={editPartnerComments}
         />
       </View>
     </SafeAreaView>

@@ -19,6 +19,7 @@ export default function MyWishListScreen() {
           wishes={wishes}
           handleDelete={deleteWish}
           toggleComplete={toggleComplete}
+          isPartnersList={false}
         />
       </View>
     </SafeAreaView>

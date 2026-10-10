@@ -6,6 +6,8 @@ import {
 } from "@/services/partnerService";
 import {
   addDoc,
+  arrayRemove,
+  arrayUnion,
   collection,
   deleteDoc,
   doc,
@@ -24,6 +26,13 @@ export interface Wish {
   link: string;
   comment: string;
   imageLink?: string;
+  partnerComments?: PartnersComment[];
+}
+
+export interface PartnersComment {
+  id: string;
+  text: string;
+  createdAt: string;
 }
 
 interface WishContextType {
@@ -38,6 +47,7 @@ interface WishContextType {
     link: string,
     comment: string,
     imageLink?: string,
+    partnerComments?: PartnersComment[],
   ) => Promise<void>;
   deleteWish: (id: string) => Promise<void>;
   toggleComplete: (id: string) => Promise<void>;
@@ -47,6 +57,9 @@ interface WishContextType {
   setPriority: (priority: number) => void;
   getPriority: () => number;
   refreshPartner: () => void;
+  addPartnerComments: (id: string, text: string) => Promise<void>;
+  deletePartnerComments: (wishId: string, commenteId: string) => Promise<void>;
+  editPartnerComments: (wishId: string, commentId: string, newComment: string) => Promise<void>;
 }
 
 const WishContext = createContext<WishContextType | undefined>(undefined);
@@ -100,6 +113,7 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
             link: data.link || "",
             comment: data.comment,
             imageLink: data.imageLink || data.imageUri || "",
+            partnerComments: data.partnerComments || [],
           };
         });
         setWishes(loadedWishes);
@@ -132,6 +146,7 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
             link: data.link || "",
             comment: data.comment,
             imageLink: data.imageLink || data.imageUri || "",
+            partnerComments: data.partnerComments || [],
           };
         });
         setPartnerWishes(loadedWishes);
@@ -170,6 +185,7 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
       link,
       comment,
       imageLink: imageUrl,
+      partnerComments: [],
       createdAt: new Date().toISOString(),
     });
   };
@@ -204,6 +220,52 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
     setPartnerIdState(pId);
   };
 
+  const addPartnerComments = async (wishId: string, text: string) => {
+    if(!partnerId) return;
+
+    const newComment: PartnersComment = {
+      id: "comm_" + Math.random().toString(36).substring(2, 9),
+      text,
+      createdAt: new Date().toISOString(),
+    };
+
+    const wishDocRef = doc(db, "users", partnerId, "wishes", wishId);
+    await updateDoc(wishDocRef, {
+      partnerComments: arrayUnion(newComment),
+    })
+  }
+
+  const deletePartnerComments = async (wishId: string, commentId: string) => {
+    if(!partnerId) return;
+
+    const targetWish = partnerWishes.find((w) => w.id === wishId)
+    if(!targetWish || !targetWish.partnerComments) return;
+
+    const commentsToDelete = targetWish.partnerComments.find((c) => c.id === commentId);
+
+    if(!commentsToDelete) return;
+
+    const wishDocRef = doc(db, "users", partnerId, "wishes", wishId);
+    await updateDoc(wishDocRef, {
+      partnerComments: arrayRemove(commentsToDelete),
+    });
+  }
+
+  const editPartnerComments = async (wishId: string, commentId: string, newText: string) => {
+    if(!partnerId) return;
+
+    const targetWish = partnerWishes.find((w) => w.id === wishId);
+    if(!targetWish || !targetWish.partnerComments) return;
+
+    const updateComments = targetWish.partnerComments.map((c) => 
+    c.id === commentId ? { ...c, text: newText } : c);
+
+    const wishDocRef = doc(db, "users", partnerId, "wishes", wishId);
+    await updateDoc(wishDocRef, {
+      partnerComments: updateComments,
+    });
+  }
+
   return (
     <WishContext.Provider
       value={{
@@ -218,6 +280,9 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
         setPriority: setPriorityState,
         getPriority: () => priority,
         refreshPartner,
+        addPartnerComments,
+        deletePartnerComments,
+        editPartnerComments,
       }}
     >
       {children}

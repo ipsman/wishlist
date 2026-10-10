@@ -9,6 +9,7 @@ import { useState } from "react";
 import {
   Image,
   Keyboard,
+  ScrollView,
   StatusBar,
   Text,
   TextInput,
@@ -94,11 +95,8 @@ export default function HomeScreen() {
     const val = Math.round(num);
     if (val !== currentPriority) {
       setPriority(val);
-
-      // Haptikus visszajelzés (rezgés) fokozatváltáskor
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-      // Ruganyos dobbanás animáció
       scale.value = withSequence(
         withSpring(1.4, { damping: 8, stiffness: 220 }),
         withSpring(1, { damping: 10, stiffness: 150 }),
@@ -110,7 +108,6 @@ export default function HomeScreen() {
     transform: [{ scale: scale.value }],
   }));
 
-  // A kiválasztott prioritáshoz tartozó egyedi címkék
   const priorityLabels = [
     "Nice to have ☁️",
     "Would be cool ✨",
@@ -124,6 +121,7 @@ export default function HomeScreen() {
       style={{ flex: 1 }}
       className="flex-1 bg-slate-100 dark:bg-slate-900"
     >
+    <ScrollView>
       <View className="flex-1 px-5 pt-2">
         <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
         <Text className="text-xl font-bold text-center mb-3 text-slate-800 dark:text-white">
@@ -158,11 +156,11 @@ export default function HomeScreen() {
             className="border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl mb-3 text-base bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white"
             placeholder="Comment"
             placeholderTextColor="#94a3b8"
+            numberOfLines={3}
             value={comment}
             onChangeText={setComment}
           />
 
-          {/* STÍLUSOS PRIORITY KÁRTYA */}
           <View className="bg-slate-50 dark:bg-slate-900/60 p-3.5 rounded-2xl mb-3 border border-slate-200/80 dark:border-slate-700">
             <View className="flex-row justify-between items-center mb-1">
               <Text className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
@@ -173,8 +171,6 @@ export default function HomeScreen() {
                 {priorityLabels[Math.max(0, currentPriority - 1)]}
               </Text>
             </View>
-
-            {/* Dobbanó Csillagok és Érték */}
             <View className="items-center my-2">
               <Animated.View
                 style={[animatedTextStyle]}
@@ -189,7 +185,6 @@ export default function HomeScreen() {
               </Animated.View>
             </View>
 
-            {/* Egyedi Témázható Slider */}
             <Slider
               style={{ width: "100%", height: 36 }}
               value={currentPriority}
@@ -205,7 +200,6 @@ export default function HomeScreen() {
 
           <CategoryPicker setCategory={setCategory} category={getCategory()} />
 
-          {/* Add Image Button */}
           <TouchableOpacity
             style={{ backgroundColor: appColor }}
             className="p-3.5 rounded-xl items-center mb-3 mt-1"
@@ -214,7 +208,6 @@ export default function HomeScreen() {
             <Text className="text-white font-bold text-base">Add Image</Text>
           </TouchableOpacity>
 
-          {/* Image Preview */}
           {selectedImage ? (
             <View className="items-center mb-3">
               <Image
@@ -243,6 +236,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
