@@ -1,4 +1,5 @@
 import MyWishList from "@/components/myWishList";
+import WishModal from "@/components/wishmodal";
 import { useSettings } from "@/context/settingsController";
 import { useWishes } from "@/context/WishContext";
 import { Text, View } from "react-native";
@@ -22,6 +23,25 @@ export default function PartnerWishList() {
           onAddPartnerComment={addPartnerComments}
           onDeletePartnerComment={deletePartnerComments}
           onEditPartnerComment={editPartnerComments}
+        />
+        <WishModal
+          id={"id"}
+            title={"Title"}
+            isCompleted={false}
+            priority={3}
+            category={"karacsony"}
+            price={4000}
+            link={"nolink"}
+            imageLink="https://res.cloudinary.com/o863ydh2/image/upload/v1791640211/wa2ccdashkkxxr7jamrd.jpg"
+            comment="After running the command above, you will see a QR code in your terminal. Scan this QR code to open the app on your device.
+
+If you're using an Android Emulator or iOS Simulator, you can press A or I respectively to open the app."
+            deleteWish={deleteWish}
+            toggleComplete={toggleComplete}
+            isPartnersWish={true}
+            onAddPartnerComment={addPartnerComments}
+            onDeletePartnerComment={deletePartnerComments}
+            onEditPartnerComment={editPartnerComments}
         />
       </View>
     </SafeAreaView>
