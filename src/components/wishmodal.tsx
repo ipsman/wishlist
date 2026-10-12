@@ -3,25 +3,25 @@ import { PartnersComment } from "@/context/WishContext"; // 👈 Használjuk a k
 import * as Haptics from "expo-haptics";
 import { useState } from "react";
 import {
-    Image,
-    Linking,
-    Modal,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Image,
+  Linking,
+  Modal,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
-    cancelAnimation,
-    runOnJS,
-    useAnimatedStyle,
-    useSharedValue,
-    withRepeat,
-    withSequence,
-    withSpring,
-    withTiming,
+  cancelAnimation,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
 } from "react-native-reanimated";
 import { CATEGORIES } from "./categories";
 
@@ -41,7 +41,11 @@ type Props = {
   isPartnersWish: boolean;
   onAddPartnerComment?: (wishId: string, text: string) => void;
   onDeletePartnerComment?: (wishId: string, commentId: string) => void;
-  onEditPartnerComment?: (wishId: string, commentId: string, newText: string) => void;
+  onEditPartnerComment?: (
+    wishId: string,
+    commentId: string,
+    newText: string,
+  ) => void;
 };
 
 export default function WishModal({
@@ -71,6 +75,8 @@ export default function WishModal({
   const deleteScale = useSharedValue(0);
   const color = useSharedValue(isDarkMode ? "#1e293b" : "#ffffff");
 
+  console.log(color);
+
   const [isImageOpened, setImageOpened] = useState(false);
   const [newCommentText, setNewCommentText] = useState("");
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
@@ -98,10 +104,10 @@ export default function WishModal({
         rotation.value = withRepeat(
           withSequence(
             withTiming(-1, { duration: 80 }),
-            withTiming(1, { duration: 80 })
+            withTiming(1, { duration: 80 }),
           ),
           -1,
-          true
+          true,
         );
       } else {
         scale.value = withSpring(1);
@@ -126,24 +132,24 @@ export default function WishModal({
   }));
 
   return (
-    <View className="my-2 relative overflow-visible h-full">
-        <ScrollView>
-      <GestureDetector gesture={longPressGesture}>
-        <Animated.View
-          style={[
-            animatedCardStyle,
-            {
-              height: "95%",
-              padding: 16,
-              borderRadius: 12,
-              borderWidth: 1,
-              borderColor: isDarkMode ? "#334155" : "#f1f5f9",
-            },
-          ]}
-        >
-          <View className="flex justify-between items-center gap-2">
-            <View className="w-full flex-row justify-between">
-            <Text
+    <View className="my-2 relative overflow-visible h-full flex-1">
+      <ScrollView>
+        <GestureDetector gesture={longPressGesture}>
+          <Animated.View
+            style={[
+              animatedCardStyle,
+              {
+                height: "100%",
+                padding: 16,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: isDarkMode ? "#334155" : "#f1f5f9",
+              },
+            ]}
+          >
+            <View className="flex justify-between items-center gap-2">
+              <View className="w-full flex-row justify-between">
+                <Text
                   className={`text-3xl ${
                     isCompleted
                       ? "line-through text-slate-400 dark:text-slate-500"
@@ -154,97 +160,100 @@ export default function WishModal({
                   {title}
                 </Text>
                 {Boolean(link) ? (
-              <TouchableOpacity
-                onPress={() => link && Linking.openURL(link)}
-                className="p-2 ml-1"
-              >
-                <Text className="text-lg">🔗</Text>
-              </TouchableOpacity>
-            ) : null}
-                </View>
-
-            {hasImage ? (
-              <TouchableOpacity
-                onPress={() => setImageOpened(true)}
-                activeOpacity={0.8}
-              >
-                <Image
-                  source={{ uri: secureImageUri }}
-                  style={{ width: 350, height: 350, borderRadius: 8 }}
-                  resizeMode="cover"
-                  onError={(e) =>
-                    console.log("Image load error:", e.nativeEvent.error)
-                  }
-                />
-              </TouchableOpacity>
-            ) : null}
-
-            <View className="flex-row items-start w-full">
-            <TouchableOpacity
-              onPress={() => !isPartnersWish && toggleComplete(id)}
-              activeOpacity={isPartnersWish ? 1 : 0.8}
-              className="flex-1 flex-row items-center gap-3"
-                >   
-
-              <View className="flex-1 ml-2">
-                {category ? (
-                <View className="flex-row gap-2">
-                    <Text className="text-xl text-slate-400 dark:text-slate-400 font-medium">
-                            Category:
-                        </Text>
-                <Text className="text-base">{categoryEmoji}</Text>
-                </View>
-              ) : null}
-                {Boolean(price) || priority > 1 ? (
-                  <View className="flex items-start">
-                    {typeof price === "number" && price > 0 ? (
-                        <View className="flex-row gap-2">
-                        <Text className="text-xl text-slate-400 dark:text-slate-400 font-medium">
-                            Price:
-                        </Text>
-                        <Text className="text-xl text-slate-400 dark:text-slate-400 font-medium">
-                            {price} Ft
-                        </Text>
-                      </View>
-                    ) : null}
-                    {priority > 1 ? (
-                        <View className="flex-row gpa-2">
-                            <Text className="text-xl text-slate-400 dark:text-slate-400 font-medium">
-                            Priority:
-                        </Text>
-                      <Text className="text-xl">{"⭐".repeat(priority)}</Text>
-                      </View>
-                    ) : null}
-                  </View>
-                ) : null}
-                {Boolean(comment) ? (
-                    <View className="flex">
-                        <Text className="text-xl text-slate-400 dark:text-slate-400 font-medium">Comment:</Text>
-                        <ScrollView>
-                             <Text
-                                className="text-lg text-slate-500 dark:text-slate-400 mt-0.5"
-                                numberOfLines={10}
-                            >
-                                {comment}
-                            </Text>
-                        </ScrollView>
-                  </View>
+                  <TouchableOpacity
+                    onPress={() => link && Linking.openURL(link)}
+                    className="p-2 ml-1"
+                  >
+                    <Text className="text-lg">🔗</Text>
+                  </TouchableOpacity>
                 ) : null}
               </View>
-            </TouchableOpacity>
+
+              {hasImage ? (
+                <TouchableOpacity
+                  onPress={() => setImageOpened(true)}
+                  activeOpacity={0.8}
+                >
+                  <Image
+                    source={{ uri: secureImageUri }}
+                    style={{ width: 350, height: 350, borderRadius: 8 }}
+                    resizeMode="cover"
+                    onError={(e) =>
+                      console.log("Image load error:", e.nativeEvent.error)
+                    }
+                  />
+                </TouchableOpacity>
+              ) : null}
+
+              <View className="flex-row items-start w-full">
+                <TouchableOpacity
+                  onPress={() => !isPartnersWish && toggleComplete(id)}
+                  activeOpacity={isPartnersWish ? 1 : 0.8}
+                  className="flex-1 flex-row items-center gap-3"
+                >
+                  <View className="flex-1 ml-2">
+                    {category ? (
+                      <View className="flex-row gap-2">
+                        <Text className="text-xl text-slate-400 dark:text-slate-400 font-medium">
+                          Category:
+                        </Text>
+                        <Text className="text-base">{categoryEmoji}</Text>
+                      </View>
+                    ) : null}
+                    {Boolean(price) || priority > 1 ? (
+                      <View className="flex items-start">
+                        {typeof price === "number" && price > 0 ? (
+                          <View className="flex-row gap-2">
+                            <Text className="text-xl text-slate-400 dark:text-slate-400 font-medium">
+                              Price:
+                            </Text>
+                            <Text className="text-xl text-slate-400 dark:text-slate-400 font-medium">
+                              {price} Ft
+                            </Text>
+                          </View>
+                        ) : null}
+                        {priority > 1 ? (
+                          <View className="flex-row gap-2">
+                            <Text className="text-xl text-slate-400 dark:text-slate-400 font-medium">
+                              Priority:
+                            </Text>
+                            <Text className="text-xl">
+                              {"⭐".repeat(priority)}
+                            </Text>
+                          </View>
+                        ) : null}
+                      </View>
+                    ) : null}
+                    {Boolean(comment) ? (
+                      <View className="flex">
+                        <Text className="text-xl text-slate-400 dark:text-slate-400 font-medium">
+                          Comment:
+                        </Text>
+                        <ScrollView>
+                          <Text
+                            className="text-lg text-slate-500 dark:text-slate-400 mt-0.5"
+                            numberOfLines={10}
+                          >
+                            {comment}
+                          </Text>
+                        </ScrollView>
+                      </View>
+                    ) : null}
+                  </View>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
 
             <View className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/60">
               <Text className="text-xs font-bold text-slate-400 dark:text-slate-500 mb-2">
                 Comments for partner:
               </Text>
 
-              {/* List of comments */}
               {partnerComments.map((comm) => (
                 <View
                   key={comm.id}
-                  className="bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl mb-1.5 flex-row justify-between items-center">
+                  className="bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl mb-1.5 flex-row justify-between items-center"
+                >
                   {editingCommentId === comm.id && isPartnersWish ? (
                     <TextInput
                       className="flex-1 text-sm bg-white dark:bg-slate-800 text-slate-800 dark:text-white p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 mr-2"
@@ -264,12 +273,18 @@ export default function WishModal({
                         <TouchableOpacity
                           onPress={() => {
                             if (editText.trim()) {
-                              onEditPartnerComment?.(id, comm.id, editText.trim());
+                              onEditPartnerComment?.(
+                                id,
+                                comm.id,
+                                editText.trim(),
+                              );
                               setEditingCommentId(null);
                             }
                           }}
                         >
-                          <Text className="text-xs text-emerald-500 font-bold">Save</Text>
+                          <Text className="text-xs text-emerald-500 font-bold">
+                            Save
+                          </Text>
                         </TouchableOpacity>
                       ) : (
                         <TouchableOpacity
@@ -293,84 +308,84 @@ export default function WishModal({
               ))}
 
               {isPartnersWish && (
-              <View className="flex-row gap-2 mt-2">
-                <TextInput
-                  className="flex-1 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white text-xs p-2 rounded-xl"
-                  placeholder="Write a comment..."
-                  placeholderTextColor="#94a3b8"
-                  value={newCommentText}
-                  onChangeText={setNewCommentText}
-                />
-                <TouchableOpacity
-                  onPress={() => {
-                    if (newCommentText.trim()) {
-                      onAddPartnerComment?.(id, newCommentText.trim());
-                      setNewCommentText("");
-                    }
-                  }}
-                  className="bg-sky-500 px-3 py-2 rounded-xl justify-center items-center"
-                >
-                  <Text className="text-white text-xs font-bold">Send</Text>
-                </TouchableOpacity>
-              </View>
+                <View className="flex-row gap-2 mt-2">
+                  <TextInput
+                    className="flex-1 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white text-xs p-2 rounded-xl"
+                    placeholder="Write a comment..."
+                    placeholderTextColor="#94a3b8"
+                    value={newCommentText}
+                    onChangeText={setNewCommentText}
+                  />
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (newCommentText.trim()) {
+                        onAddPartnerComment?.(id, newCommentText.trim());
+                        setNewCommentText("");
+                      }
+                    }}
+                    className="bg-sky-500 px-3 py-2 rounded-xl justify-center items-center"
+                  >
+                    <Text className="text-white text-xs font-bold">Send</Text>
+                  </TouchableOpacity>
+                </View>
               )}
-            </View>      
-        </Animated.View>
-      </GestureDetector>
+            </View>
+          </Animated.View>
+        </GestureDetector>
 
-      {/* Image Modal */}
-      {isImageOpened ? (
-        <Modal
-          transparent={true}
-          animationType="fade"
-          visible={true}
-          onRequestClose={() => setImageOpened(false)}
-        >
-          <TouchableOpacity
-            activeOpacity={1}
-            onPress={() => setImageOpened(false)}
-            style={{
-              flex: 1,
-              backgroundColor: "rgba(0, 0, 0, 0.8)",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
+        {/* Image Modal */}
+        {isImageOpened ? (
+          <Modal
+            transparent={true}
+            animationType="fade"
+            visible={true}
+            onRequestClose={() => setImageOpened(false)}
           >
-            <TouchableOpacity activeOpacity={1}>
-              <Image
-                source={{ uri: secureImageUri }}
-                style={{ width: 340, height: 380, borderRadius: 16 }}
-                resizeMode="cover"
-                onError={(e) =>
-                  console.log("Image load error:", e.nativeEvent.error)
-                }
-              />
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() => setImageOpened(false)}
+              style={{
+                flex: 1,
+                backgroundColor: "rgba(0, 0, 0, 0.8)",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <TouchableOpacity activeOpacity={1}>
+                <Image
+                  source={{ uri: secureImageUri }}
+                  style={{ width: 340, height: 380, borderRadius: 16 }}
+                  resizeMode="cover"
+                  onError={(e) =>
+                    console.log("Image load error:", e.nativeEvent.error)
+                  }
+                />
+              </TouchableOpacity>
             </TouchableOpacity>
-          </TouchableOpacity>
-        </Modal>
-      ) : null}
+          </Modal>
+        ) : null}
 
-      {!isPartnersWish && (
-        <Animated.View
-          style={[
-            animatedDeleteButtonStyle,
-            {
-              position: "absolute",
-              top: -10,
-              right: 12,
-              zIndex: 20,
-            },
-          ]}
-        >
-          <TouchableOpacity
-            onPress={() => deleteWish(id)}
-            className="bg-rose-500 w-8 h-8 rounded-full justify-center items-center shadow-md"
-            activeOpacity={0.7}
+        {!isPartnersWish && (
+          <Animated.View
+            style={[
+              animatedDeleteButtonStyle,
+              {
+                position: "absolute",
+                top: -10,
+                right: 12,
+                zIndex: 20,
+              },
+            ]}
           >
-            <Text className="text-xs text-white">🗑️</Text>
-          </TouchableOpacity>
-        </Animated.View>
-      )}
+            <TouchableOpacity
+              onPress={() => deleteWish(id)}
+              className="bg-rose-500 w-8 h-8 rounded-full justify-center items-center shadow-md"
+              activeOpacity={0.7}
+            >
+              <Text className="text-xs text-white">🗑️</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
       </ScrollView>
     </View>
   );

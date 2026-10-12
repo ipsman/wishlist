@@ -1,5 +1,5 @@
 import { useSettings } from "@/context/settingsController";
-import { PartnersComment } from "@/context/WishContext"; // 👈 Használjuk a kontextus típusát
+import { PartnersComment } from "@/context/WishContext";
 import * as Haptics from "expo-haptics";
 import { useState } from "react";
 import {
@@ -40,7 +40,12 @@ type Props = {
   isPartnersWish: boolean;
   onAddPartnerComment?: (wishId: string, text: string) => void;
   onDeletePartnerComment?: (wishId: string, commentId: string) => void;
-  onEditPartnerComment?: (wishId: string, commentId: string, newText: string) => void;
+  onEditPartnerComment?: (
+    wishId: string,
+    commentId: string,
+    newText: string,
+  ) => void;
+  openWishModal: (id: string) => void;
 };
 
 export default function WishItem({
@@ -60,6 +65,7 @@ export default function WishItem({
   onAddPartnerComment,
   onDeletePartnerComment,
   onEditPartnerComment,
+  openWishModal,
 }: Props) {
   const { theme } = useSettings();
   const isDarkMode = theme?.toLowerCase() === "dark";
@@ -97,10 +103,10 @@ export default function WishItem({
         rotation.value = withRepeat(
           withSequence(
             withTiming(-1, { duration: 80 }),
-            withTiming(1, { duration: 80 })
+            withTiming(1, { duration: 80 }),
           ),
           -1,
-          true
+          true,
         );
       } else {
         scale.value = withSpring(1);
@@ -138,10 +144,11 @@ export default function WishItem({
             },
           ]}
         >
-          {/* MAIN WISH CONTENT */}
           <View className="flex-row justify-between items-center gap-2">
             <TouchableOpacity
-              onPress={() => !isPartnersWish && toggleComplete(id)}
+              onPress={() =>
+                !isPartnersWish ? toggleComplete(id) : openWishModal(id)
+              }
               activeOpacity={isPartnersWish ? 1 : 0.8}
               className="flex-1 flex-row items-center gap-3"
             >
@@ -225,64 +232,71 @@ export default function WishItem({
 
           {/* PARTNER COMMENT SECTION */}
 
-            <View className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/60">
-              <Text className="text-xs font-bold text-slate-400 dark:text-slate-500 mb-2">
-                Comments for partner:
-              </Text>
+          <View className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/60">
+            <Text className="text-xs font-bold text-slate-400 dark:text-slate-500 mb-2">
+              Comments for partner:
+            </Text>
 
-              {/* List of comments */}
-              {partnerComments.map((comm) => (
-                <View
-                  key={comm.id}
-                  className="bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl mb-1.5 flex-row justify-between items-center">
-                  {editingCommentId === comm.id && isPartnersWish ? (
-                    <TextInput
-                      className="flex-1 text-sm bg-white dark:bg-slate-800 text-slate-800 dark:text-white p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 mr-2"
-                      value={editText}
-                      onChangeText={setEditText}
-                      autoFocus
-                    />
-                  ) : (
-                    <Text className="flex-1 text-xs text-slate-700 dark:text-slate-300">
-                      {comm.text}
-                    </Text>
-                  )}
+            {/* List of comments */}
+            {partnerComments.map((comm) => (
+              <View
+                key={comm.id}
+                className="bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl mb-1.5 flex-row justify-between items-center"
+              >
+                {editingCommentId === comm.id && isPartnersWish ? (
+                  <TextInput
+                    className="flex-1 text-sm bg-white dark:bg-slate-800 text-slate-800 dark:text-white p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 mr-2"
+                    value={editText}
+                    onChangeText={setEditText}
+                    autoFocus
+                  />
+                ) : (
+                  <Text className="flex-1 text-xs text-slate-700 dark:text-slate-300">
+                    {comm.text}
+                  </Text>
+                )}
 
-                  {isPartnersWish && (
-                    <View className="flex-row gap-2">
-                      {editingCommentId === comm.id ? (
-                        <TouchableOpacity
-                          onPress={() => {
-                            if (editText.trim()) {
-                              onEditPartnerComment?.(id, comm.id, editText.trim());
-                              setEditingCommentId(null);
-                            }
-                          }}
-                        >
-                          <Text className="text-xs text-emerald-500 font-bold">Save</Text>
-                        </TouchableOpacity>
-                      ) : (
-                        <TouchableOpacity
-                          onPress={() => {
-                            setEditingCommentId(comm.id);
-                            setEditText(comm.text);
-                          }}
-                        >
-                          <Text className="text-xs text-sky-500">✏️</Text>
-                        </TouchableOpacity>
-                      )}
-
+                {isPartnersWish && (
+                  <View className="flex-row gap-2">
+                    {editingCommentId === comm.id ? (
                       <TouchableOpacity
-                        onPress={() => onDeletePartnerComment?.(id, comm.id)}
+                        onPress={() => {
+                          if (editText.trim()) {
+                            onEditPartnerComment?.(
+                              id,
+                              comm.id,
+                              editText.trim(),
+                            );
+                            setEditingCommentId(null);
+                          }
+                        }}
                       >
-                        <Text className="text-xs text-rose-500">🗑️</Text>
+                        <Text className="text-xs text-emerald-500 font-bold">
+                          Save
+                        </Text>
                       </TouchableOpacity>
-                    </View>
-                  )}
-                </View>
-              ))}
+                    ) : (
+                      <TouchableOpacity
+                        onPress={() => {
+                          setEditingCommentId(comm.id);
+                          setEditText(comm.text);
+                        }}
+                      >
+                        <Text className="text-xs text-sky-500">✏️</Text>
+                      </TouchableOpacity>
+                    )}
 
-              {isPartnersWish && (
+                    <TouchableOpacity
+                      onPress={() => onDeletePartnerComment?.(id, comm.id)}
+                    >
+                      <Text className="text-xs text-rose-500">🗑️</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            ))}
+
+            {isPartnersWish && (
               <View className="flex-row gap-2 mt-2">
                 <TextInput
                   className="flex-1 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white text-xs p-2 rounded-xl"
@@ -303,8 +317,8 @@ export default function WishItem({
                   <Text className="text-white text-xs font-bold">Send</Text>
                 </TouchableOpacity>
               </View>
-              )}
-            </View>      
+            )}
+          </View>
         </Animated.View>
       </GestureDetector>
 

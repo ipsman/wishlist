@@ -10,7 +10,12 @@ type Props = {
   toggleComplete: (id: string) => void;
   onAddPartnerComment?: (wishId: string, text: string) => void;
   onDeletePartnerComment?: (wishId: string, commentId: string) => void;
-  onEditPartnerComment?: (wishId: string, commentId: string, newText: string) => void;
+  onEditPartnerComment?: (
+    wishId: string,
+    commentId: string,
+    newText: string,
+  ) => void;
+  onOpenWishModal?: (id: string) => void;
 };
 
 export default function MyWishList({
@@ -21,6 +26,7 @@ export default function MyWishList({
   onAddPartnerComment,
   onDeletePartnerComment,
   onEditPartnerComment,
+  onOpenWishModal,
 }: Props) {
   return (
     <SafeAreaView className="flex-1" style={{ flex: 1, width: "100%" }}>
@@ -58,6 +64,7 @@ export default function MyWishList({
             onAddPartnerComment={onAddPartnerComment}
             onDeletePartnerComment={onDeletePartnerComment}
             onEditPartnerComment={onEditPartnerComment}
+            openWishModal={onOpenWishModal || (() => {})}
           />
         )}
       />
