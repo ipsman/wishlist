@@ -79,7 +79,7 @@ export default function PartnerWishList() {
                   price={selectedWish.price}
                   link={selectedWish.link}
                   comment={selectedWish.comment}
-                  imageLink={selectedWish.imageLink}
+                  imageLink={selectedWish.imageLink || []}
                   partnerComments={selectedWish.partnerComments || []}
                   deleteWish={deleteWish}
                   toggleComplete={togglePartnerComplete}

@@ -25,7 +25,7 @@ export interface Wish {
   price: number;
   link: string;
   comment: string;
-  imageLink?: string;
+  imageLink?: string[]; // 👈 Több kép URL tömbje
   partnerComments?: PartnersComment[];
 }
 
@@ -46,7 +46,7 @@ interface WishContextType {
     price: number,
     link: string,
     comment: string,
-    imageLink?: string,
+    imageUris?: string[], // 👈 Több helyi kép URI-ja
     partnerComments?: PartnersComment[],
   ) => Promise<void>;
   deleteWish: (id: string) => Promise<void>;
@@ -58,8 +58,12 @@ interface WishContextType {
   getPriority: () => number;
   refreshPartner: () => void;
   addPartnerComments: (id: string, text: string) => Promise<void>;
-  deletePartnerComments: (wishId: string, commenteId: string) => Promise<void>;
-  editPartnerComments: (wishId: string, commentId: string, newComment: string) => Promise<void>;
+  deletePartnerComments: (wishId: string, commentId: string) => Promise<void>;
+  editPartnerComments: (
+    wishId: string,
+    commentId: string,
+    newComment: string,
+  ) => Promise<void>;
 }
 
 const WishContext = createContext<WishContextType | undefined>(undefined);
@@ -91,10 +95,20 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  useEffect(() => {
-    if (!userId) {
-      return;
+  // Segédfunkció az adatok egységes képtömbbé alakítására (kompatibilis a régi string formátummal is)
+  const parseImageLinks = (data: any): string[] => {
+    const rawImages = data.imageLink || data.imageUri;
+    if (Array.isArray(rawImages)) {
+      return rawImages;
     }
+    if (typeof rawImages === "string" && rawImages.trim().length > 0) {
+      return [rawImages];
+    }
+    return [];
+  };
+
+  useEffect(() => {
+    if (!userId) return;
 
     const myWishesRef = collection(db, "users", userId, "wishes");
 
@@ -111,8 +125,8 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
             category: data.category || "",
             price: Number(data.price) || 0,
             link: data.link || "",
-            comment: data.comment,
-            imageLink: data.imageLink || data.imageUri || "",
+            comment: data.comment || "",
+            imageLink: parseImageLinks(data),
             partnerComments: data.partnerComments || [],
           };
         });
@@ -144,8 +158,8 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
             category: data.category || "",
             price: Number(data.price) || 0,
             link: data.link || "",
-            comment: data.comment,
-            imageLink: data.imageLink || data.imageUri || "",
+            comment: data.comment || "",
+            imageLink: parseImageLinks(data),
             partnerComments: data.partnerComments || [],
           };
         });
@@ -159,6 +173,7 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, [partnerId]);
 
+  // Új kívánság hozzáadása több kép feltöltésével
   const addWish = async (
     title: string,
     isCompleted: boolean,
@@ -167,13 +182,19 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
     price: number,
     link: string,
     comment: string,
-    imageUri?: string,
+    imageUris?: string[],
   ) => {
     const currentUserId = userId || (await getOrCreateUserId());
 
-    let imageUrl = "";
-    if (imageUri) {
-      imageUrl = await uploadImageToCloudinary(imageUri);
+    const uploadedImageUrls: string[] = [];
+
+    if (imageUris && imageUris.length > 0) {
+      // Párhuzamosan feltöltjük az összes képet Cloudinary-ra
+      const uploadPromises = imageUris.map((uri) =>
+        uploadImageToCloudinary(uri),
+      );
+      const results = await Promise.all(uploadPromises);
+      uploadedImageUrls.push(...results.filter((url) => Boolean(url)));
     }
 
     await addDoc(collection(db, "users", currentUserId, "wishes"), {
@@ -184,7 +205,7 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
       price: Number(price),
       link,
       comment,
-      imageLink: imageUrl,
+      imageLink: uploadedImageUrls, // 👈 Képek URL tömbjét mentjük
       partnerComments: [],
       createdAt: new Date().toISOString(),
     });
@@ -221,7 +242,7 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addPartnerComments = async (wishId: string, text: string) => {
-    if(!partnerId) return;
+    if (!partnerId) return;
 
     const newComment: PartnersComment = {
       id: "comm_" + Math.random().toString(36).substring(2, 9),
@@ -232,39 +253,46 @@ export function WishProvider({ children }: { children: React.ReactNode }) {
     const wishDocRef = doc(db, "users", partnerId, "wishes", wishId);
     await updateDoc(wishDocRef, {
       partnerComments: arrayUnion(newComment),
-    })
-  }
+    });
+  };
 
   const deletePartnerComments = async (wishId: string, commentId: string) => {
-    if(!partnerId) return;
+    if (!partnerId) return;
 
-    const targetWish = partnerWishes.find((w) => w.id === wishId)
-    if(!targetWish || !targetWish.partnerComments) return;
+    const targetWish = partnerWishes.find((w) => w.id === wishId);
+    if (!targetWish || !targetWish.partnerComments) return;
 
-    const commentsToDelete = targetWish.partnerComments.find((c) => c.id === commentId);
+    const commentsToDelete = targetWish.partnerComments.find(
+      (c) => c.id === commentId,
+    );
 
-    if(!commentsToDelete) return;
+    if (!commentsToDelete) return;
 
     const wishDocRef = doc(db, "users", partnerId, "wishes", wishId);
     await updateDoc(wishDocRef, {
       partnerComments: arrayRemove(commentsToDelete),
     });
-  }
+  };
 
-  const editPartnerComments = async (wishId: string, commentId: string, newText: string) => {
-    if(!partnerId) return;
+  const editPartnerComments = async (
+    wishId: string,
+    commentId: string,
+    newText: string,
+  ) => {
+    if (!partnerId) return;
 
     const targetWish = partnerWishes.find((w) => w.id === wishId);
-    if(!targetWish || !targetWish.partnerComments) return;
+    if (!targetWish || !targetWish.partnerComments) return;
 
-    const updateComments = targetWish.partnerComments.map((c) => 
-    c.id === commentId ? { ...c, text: newText } : c);
+    const updateComments = targetWish.partnerComments.map((c) =>
+      c.id === commentId ? { ...c, text: newText } : c,
+    );
 
     const wishDocRef = doc(db, "users", partnerId, "wishes", wishId);
     await updateDoc(wishDocRef, {
       partnerComments: updateComments,
     });
-  }
+  };
 
   return (
     <WishContext.Provider

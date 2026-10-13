@@ -1,5 +1,5 @@
 import { useSettings } from "@/context/settingsController";
-import { PartnersComment } from "@/context/WishContext"; // 👈 Használjuk a kontextus típusát
+import { PartnersComment } from "@/context/WishContext";
 import * as Haptics from "expo-haptics";
 import { useState } from "react";
 import {
@@ -24,6 +24,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { CATEGORIES } from "./categories";
+import ImageViewer from "./ImageViewer";
 
 type Props = {
   id: string;
@@ -34,7 +35,7 @@ type Props = {
   price?: number;
   link?: string;
   comment?: string;
-  imageLink?: string;
+  imageLink?: string[];
   partnerComments?: PartnersComment[];
   deleteWish: (id: string) => void;
   toggleComplete: (id: string) => void;
@@ -57,7 +58,7 @@ export default function WishModal({
   price,
   link,
   comment,
-  imageLink,
+  imageLink = [],
   partnerComments = [],
   deleteWish,
   toggleComplete,
@@ -75,9 +76,8 @@ export default function WishModal({
   const deleteScale = useSharedValue(0);
   const color = useSharedValue(isDarkMode ? "#1e293b" : "#ffffff");
 
-  console.log(color);
-
   const [isImageOpened, setImageOpened] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [newCommentText, setNewCommentText] = useState("");
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
@@ -85,8 +85,11 @@ export default function WishModal({
   const categoryEmoji =
     CATEGORIES.find((cat) => cat.key === category)?.emoji || category;
 
-  const hasImage = typeof imageLink === "string" && imageLink.trim().length > 0;
-  const secureImageUri = imageLink?.replace("http://", "https://");
+  // 🖼️ Helyes tömb ellenőrzés
+  const hasImage = Boolean(imageLink && imageLink.length > 0);
+  const secureImageUris = imageLink.map((url) =>
+    url.replace("http://", "https://"),
+  );
 
   const longPressGesture = Gesture.LongPress()
     .minDuration(150)
@@ -133,13 +136,12 @@ export default function WishModal({
 
   return (
     <View className="my-2 relative overflow-visible h-full flex-1">
-      <ScrollView>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <GestureDetector gesture={longPressGesture}>
           <Animated.View
             style={[
               animatedCardStyle,
               {
-                height: "100%",
                 padding: 16,
                 borderRadius: 12,
                 borderWidth: 1,
@@ -148,14 +150,14 @@ export default function WishModal({
             ]}
           >
             <View className="flex justify-between items-center gap-2">
-              <View className="w-full flex-row justify-between">
+              <View className="w-full flex-row justify-between items-center">
                 <Text
-                  className={`text-3xl ${
+                  className={`text-2xl flex-1 pr-2 ${
                     isCompleted
                       ? "line-through text-slate-400 dark:text-slate-500"
                       : "text-slate-700 dark:text-slate-100 font-bold"
                   }`}
-                  numberOfLines={1}
+                  numberOfLines={2}
                 >
                   {title}
                 </Text>
@@ -169,74 +171,65 @@ export default function WishModal({
                 ) : null}
               </View>
 
+              {/* 📸 KÉP NÉZET (ImageViewer komponensnek továbbítva) */}
               {hasImage ? (
-                <TouchableOpacity
-                  onPress={() => setImageOpened(true)}
-                  activeOpacity={0.8}
-                >
-                  <Image
-                    source={{ uri: secureImageUri }}
-                    style={{ width: 350, height: 350, borderRadius: 8 }}
-                    resizeMode="cover"
-                    onError={(e) =>
-                      console.log("Image load error:", e.nativeEvent.error)
-                    }
+                <View className="w-full my-2">
+                  <ImageViewer
+                    secureImageUri={secureImageUris}
+                    setImageOpened={setImageOpened}
                   />
-                </TouchableOpacity>
+                </View>
               ) : null}
 
-              <View className="flex-row items-start w-full">
+              <View className="flex-row items-start w-full mt-1">
                 <TouchableOpacity
                   onPress={() => !isPartnersWish && toggleComplete(id)}
                   activeOpacity={isPartnersWish ? 1 : 0.8}
                   className="flex-1 flex-row items-center gap-3"
                 >
-                  <View className="flex-1 ml-2">
+                  <View className="flex-1">
                     {category ? (
-                      <View className="flex-row gap-2">
-                        <Text className="text-xl text-slate-400 dark:text-slate-400 font-medium">
+                      <View className="flex-row items-center gap-2 mb-1">
+                        <Text className="text-base text-slate-400 dark:text-slate-400 font-medium">
                           Category:
                         </Text>
                         <Text className="text-base">{categoryEmoji}</Text>
                       </View>
                     ) : null}
+
                     {Boolean(price) || priority > 1 ? (
-                      <View className="flex items-start">
+                      <View className="flex items-start gap-1">
                         {typeof price === "number" && price > 0 ? (
-                          <View className="flex-row gap-2">
-                            <Text className="text-xl text-slate-400 dark:text-slate-400 font-medium">
+                          <View className="flex-row items-center gap-2">
+                            <Text className="text-base text-slate-400 dark:text-slate-400 font-medium">
                               Price:
                             </Text>
-                            <Text className="text-xl text-slate-400 dark:text-slate-400 font-medium">
+                            <Text className="text-base text-slate-700 dark:text-slate-200 font-bold">
                               {price} Ft
                             </Text>
                           </View>
                         ) : null}
                         {priority > 1 ? (
-                          <View className="flex-row gap-2">
-                            <Text className="text-xl text-slate-400 dark:text-slate-400 font-medium">
+                          <View className="flex-row items-center gap-2">
+                            <Text className="text-base text-slate-400 dark:text-slate-400 font-medium">
                               Priority:
                             </Text>
-                            <Text className="text-xl">
+                            <Text className="text-base">
                               {"⭐".repeat(priority)}
                             </Text>
                           </View>
                         ) : null}
                       </View>
                     ) : null}
+
                     {Boolean(comment) ? (
-                      <View className="flex">
-                        <Text className="text-xl text-slate-400 dark:text-slate-400 font-medium">
+                      <View className="mt-2">
+                        <Text className="text-base text-slate-400 dark:text-slate-400 font-medium mb-1">
                           Comment:
                         </Text>
-                        <ScrollView>
-                          <Text
-                            className="text-lg text-slate-500 dark:text-slate-400 mt-0.5"
-                            numberOfLines={10}
-                          >
-                            {comment}
-                          </Text>
-                        </ScrollView>
+                        <Text className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                          {comment}
+                        </Text>
                       </View>
                     ) : null}
                   </View>
@@ -244,8 +237,9 @@ export default function WishModal({
               </View>
             </View>
 
-            <View className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/60">
-              <Text className="text-xs font-bold text-slate-400 dark:text-slate-500 mb-2">
+            {/* PARTNER KOMMENT SZEKCIÓ */}
+            <View className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700/60">
+              <Text className="text-xs font-bold text-slate-400 dark:text-slate-500 mb-2 uppercase tracking-wider">
                 Comments for partner:
               </Text>
 
@@ -310,7 +304,7 @@ export default function WishModal({
               {isPartnersWish && (
                 <View className="flex-row gap-2 mt-2">
                   <TextInput
-                    className="flex-1 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white text-xs p-2 rounded-xl"
+                    className="flex-1 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white text-xs p-2.5 rounded-xl"
                     placeholder="Write a comment..."
                     placeholderTextColor="#94a3b8"
                     value={newCommentText}
@@ -323,7 +317,7 @@ export default function WishModal({
                         setNewCommentText("");
                       }
                     }}
-                    className="bg-sky-500 px-3 py-2 rounded-xl justify-center items-center"
+                    className="bg-sky-500 px-3.5 py-2 rounded-xl justify-center items-center"
                   >
                     <Text className="text-white text-xs font-bold">Send</Text>
                   </TouchableOpacity>
@@ -333,8 +327,7 @@ export default function WishModal({
           </Animated.View>
         </GestureDetector>
 
-        {/* Image Modal */}
-        {isImageOpened ? (
+        {isImageOpened && hasImage ? (
           <Modal
             transparent={true}
             animationType="fade"
@@ -353,12 +346,9 @@ export default function WishModal({
             >
               <TouchableOpacity activeOpacity={1}>
                 <Image
-                  source={{ uri: secureImageUri }}
+                  source={{ uri: imageLink[selectedImageIndex] }}
                   style={{ width: 340, height: 380, borderRadius: 16 }}
                   resizeMode="cover"
-                  onError={(e) =>
-                    console.log("Image load error:", e.nativeEvent.error)
-                  }
                 />
               </TouchableOpacity>
             </TouchableOpacity>

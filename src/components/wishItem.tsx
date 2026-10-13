@@ -33,7 +33,7 @@ type Props = {
   price?: number;
   link?: string;
   comment?: string;
-  imageLink?: string;
+  imageLink?: string[];
   partnerComments?: PartnersComment[];
   deleteWish: (id: string) => void;
   toggleComplete: (id: string) => void;
@@ -57,7 +57,7 @@ export default function WishItem({
   price,
   link,
   comment,
-  imageLink,
+  imageLink = [],
   partnerComments = [],
   deleteWish,
   toggleComplete,
@@ -84,8 +84,11 @@ export default function WishItem({
   const categoryEmoji =
     CATEGORIES.find((cat) => cat.key === category)?.emoji || category;
 
-  const hasImage = typeof imageLink === "string" && imageLink.trim().length > 0;
-  const secureImageUri = imageLink?.replace("http://", "https://");
+  // 🖼️ Helyes tömb-ellenőrzés a képekhez
+  const hasImage = Boolean(imageLink && imageLink.length > 0);
+  const firstImageUri = hasImage
+    ? imageLink[0]?.replace("http://", "https://")
+    : "";
 
   const longPressGesture = Gesture.LongPress()
     .minDuration(150)
@@ -204,19 +207,28 @@ export default function WishItem({
               </View>
             </TouchableOpacity>
 
+            {/* 📸 Első kép előnézete + darabszám badge ha 1-nél több kép van */}
             {hasImage ? (
               <TouchableOpacity
                 onPress={() => setImageOpened(true)}
                 activeOpacity={0.8}
+                className="relative"
               >
                 <Image
-                  source={{ uri: secureImageUri }}
+                  source={{ uri: firstImageUri }}
                   style={{ width: 48, height: 48, borderRadius: 8 }}
                   resizeMode="cover"
                   onError={(e) =>
                     console.log("Image load error:", e.nativeEvent.error)
                   }
                 />
+                {imageLink.length > 1 ? (
+                  <View className="absolute -bottom-1 -right-1 bg-black/70 px-1.5 py-0.5 rounded-full">
+                    <Text className="text-[10px] text-white font-bold">
+                      +{imageLink.length - 1}
+                    </Text>
+                  </View>
+                ) : null}
               </TouchableOpacity>
             ) : null}
 
@@ -230,14 +242,12 @@ export default function WishItem({
             ) : null}
           </View>
 
-          {/* PARTNER COMMENT SECTION */}
-
+          {/* PARTNER KOMMENT SZEKCIÓ */}
           <View className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/60">
             <Text className="text-xs font-bold text-slate-400 dark:text-slate-500 mb-2">
               Comments for partner:
             </Text>
 
-            {/* List of comments */}
             {partnerComments.map((comm) => (
               <View
                 key={comm.id}
@@ -322,8 +332,8 @@ export default function WishItem({
         </Animated.View>
       </GestureDetector>
 
-      {/* Image Modal */}
-      {isImageOpened ? (
+      {/* Kép megnyitása Modalban */}
+      {isImageOpened && hasImage ? (
         <Modal
           transparent={true}
           animationType="fade"
@@ -342,19 +352,16 @@ export default function WishItem({
           >
             <TouchableOpacity activeOpacity={1}>
               <Image
-                source={{ uri: secureImageUri }}
+                source={{ uri: firstImageUri }}
                 style={{ width: 340, height: 380, borderRadius: 16 }}
                 resizeMode="cover"
-                onError={(e) =>
-                  console.log("Image load error:", e.nativeEvent.error)
-                }
               />
             </TouchableOpacity>
           </TouchableOpacity>
         </Modal>
       ) : null}
 
-      {/* Delete Button (Only for own wishes) */}
+      {/* Törlés gomb (Saját vágyaknál) */}
       {!isPartnersWish && (
         <Animated.View
           style={[
